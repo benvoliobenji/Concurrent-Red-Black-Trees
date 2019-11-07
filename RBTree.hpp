@@ -8,6 +8,8 @@ class RBTree
         Node *root;
 
     public:
+        RBTree() { root = NULL; };
+        
         bool search(int searchKey);
 
         bool insert(int insertKey);
