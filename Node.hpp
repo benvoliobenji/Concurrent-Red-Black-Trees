@@ -16,7 +16,10 @@ class Node
         Node *left;
         Node *right;
         Color nodeColor;
+        bool currentlyReading;
+        bool currentlyWriting;
         pthread_mutex_t mutex;
+        pthread_cond_t OKtoRead;
 
     public:
 
@@ -26,6 +29,8 @@ class Node
         parent = left = right = NULL;
         nodeColor = Color::RED;
         pthread_mutex_init(&mutex, NULL);
+        pthread_cond_init(&OKtoRead, NULL);
+        currentlyReading = currentlyWriting = false;
     }
 
     Node (int initKey, Color color)
@@ -34,6 +39,8 @@ class Node
         parent = left = right = NULL;
         nodeColor = color;
         pthread_mutex_init(&mutex, NULL);
+        pthread_cond_init(&OKtoRead, NULL);
+        currentlyReading = currentlyWriting = false;
     }
 
     Node(int initKey, Node *parentNode, Node *leftChild, Node *rightChild, Color color)
@@ -44,6 +51,8 @@ class Node
         right = rightChild;
         nodeColor = color;
         pthread_mutex_init(&mutex, NULL);
+        pthread_cond_init(&OKtoRead, NULL);
+        currentlyReading = currentlyWriting = false;
     }
 
     void lockNode() { pthread_mutex_lock(&mutex); }
