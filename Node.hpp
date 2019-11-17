@@ -37,6 +37,8 @@ class Node
 
     ~Node();
 
+    bool stillExists();
+
     void startReading();
     void stopReading();
 
