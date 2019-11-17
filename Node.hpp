@@ -16,47 +16,32 @@ class Node
         Node *left;
         Node *right;
         Color nodeColor;
-        bool currentlyReading;
+        int currentlyReading = 0;
         bool currentlyWriting;
+        int waitingWriters = 0;
+        int waitingReaders = 0;
         pthread_mutex_t mutex;
         pthread_cond_t OKtoRead;
+        pthread_cond_t OKtoWrite;
+
+        void lockNode() { pthread_mutex_lock(&mutex); }
+        void unlockNode() { pthread_mutex_unlock(&mutex); }
 
     public:
 
-    Node (int initKey)
-    {
-        key = initKey;
-        parent = left = right = NULL;
-        nodeColor = Color::RED;
-        pthread_mutex_init(&mutex, NULL);
-        pthread_cond_init(&OKtoRead, NULL);
-        currentlyReading = currentlyWriting = false;
-    }
+    Node (int initKey);
 
-    Node (int initKey, Color color)
-    {
-        key = initKey;
-        parent = left = right = NULL;
-        nodeColor = color;
-        pthread_mutex_init(&mutex, NULL);
-        pthread_cond_init(&OKtoRead, NULL);
-        currentlyReading = currentlyWriting = false;
-    }
+    Node (int initKey, Color color);
 
-    Node(int initKey, Node *parentNode, Node *leftChild, Node *rightChild, Color color)
-    {
-        key = initKey;
-        parent = parentNode;
-        left = leftChild;
-        right = rightChild;
-        nodeColor = color;
-        pthread_mutex_init(&mutex, NULL);
-        pthread_cond_init(&OKtoRead, NULL);
-        currentlyReading = currentlyWriting = false;
-    }
+    Node(int initKey, Node *parentNode, Node *leftChild, Node *rightChild, Color color);
 
-    void lockNode() { pthread_mutex_lock(&mutex); }
-    void unlockNode() { pthread_mutex_unlock(&mutex); }
+    ~Node();
+
+    void startReading();
+    void stopReading();
+
+    void startWriting();
+    void stopWriting();
 
     int getKey() { return key; }
     void setKey(int newKey) { key = newKey; }

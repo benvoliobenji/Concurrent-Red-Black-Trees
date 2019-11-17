@@ -14,7 +14,7 @@ bool RBTree::search(int searchKey)
         while (true)
         {
             // Lock the node first
-            parentNode->lockNode();
+            parentNode->startReading();
 
             // Check on the key
             if (parentNode->getKey() == searchKey)
@@ -36,7 +36,7 @@ bool RBTree::search(int searchKey)
             }
             else
             {
-                parentNode->unlockNode();
+                parentNode->stopReading();
                 parentNode = childNode;
                 childNode = NULL;
             }
