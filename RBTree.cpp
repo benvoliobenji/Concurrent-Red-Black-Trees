@@ -47,13 +47,17 @@ bool RBTree::search(int searchKey)
 
 bool RBTree::insert(int insertKey)
 {
-    Node* insertNode = new Node(insertKey);
+    Node *newNode = new Node(insertKey);
+    return insertNode(newNode);
+}
 
+bool RBTree::insertNode(Node* newNode)
+{
     // First, check to see if this is the first node in the tree
     if (root == NULL)
     {
-        insertNode->setNodeColor(Color::BLACK);
-        insertNode = root;
+        newNode->setNodeColor(Color::BLACK);
+        newNode = root;
         return true;
     }
     else
@@ -64,41 +68,38 @@ bool RBTree::insert(int insertKey)
         while(true)
         {
             // Start with reading to find the leaf node to insert on
-            parentNode->startReading();
+            // Using writing condition variable to enforce execution order
+            parentNode->startWriting();
 
-            if (insertNode->getKey() > parentNode->getKey())
+            if (newNode->getKey() > parentNode->getKey())
             {
                 childNode = parentNode->getRight();
             }
-            else if (insertNode->getKey <= parentNode->getKey())
+            else if (newNode->getKey() <= parentNode->getKey())
             {
                 childNode = parentNode->getLeft();
             }
 
             if (childNode == NULL)
             {
-                // This is a leaf node, so lock the parent node for writing
-                parentNode->stopReading();
-                parentNode->startWriting();
-
                 // Do we need to check for existence?
 
                 // Set the parent's child
-                if (insertNode->getKey() > parentNode->getKey())
+                if (newNode->getKey() > parentNode->getKey())
                 {
-                    parentNode->setRight(insertNode);
+                    parentNode->setRight(newNode);
                 }
                 else
                 {
-                    parentNode->setLeft(insertNode);
+                    parentNode->setLeft(newNode);
                 }
 
                 parentNode->stopWriting();
 
                 // Set the child's parent
-                insertNode->startWriting();
-                insertNode->setParent(parentNode);
-                insertNode->stopWriting();
+                newNode->startWriting();
+                newNode->setParent(parentNode);
+                newNode->stopWriting();
 
                 //TODO: Call a rebalance here to make sure the tree is balanced and doesn't have any conflicts
                 return true;
@@ -110,7 +111,7 @@ bool RBTree::insert(int insertKey)
                 Node *oldNode = parentNode;
                 parentNode = childNode;
                 childNode = NULL;
-                oldNode->stopReading();
+                oldNode->stopWriting();
             }
             
         }
