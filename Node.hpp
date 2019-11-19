@@ -61,4 +61,6 @@ class Node
 
     Color getNodeColor() { return nodeColor; }
     void setNodeColor(Color newNodeColor) { nodeColor = newNodeColor; }
+
+    inline bool operator==(const Node &compareNode) {return key == compareNode.key;}
 };

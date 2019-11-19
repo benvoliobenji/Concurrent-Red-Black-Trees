@@ -49,6 +49,7 @@ bool RBTree::insert(int insertKey)
 {
     Node *newNode = new Node(insertKey);
     return insertNode(newNode);
+    // Actually call the reorg of the tree here rather than in the helper function
 }
 
 bool RBTree::insertNode(Node* newNode)
@@ -116,5 +117,52 @@ bool RBTree::insertNode(Node* newNode)
             
         }
     }
-    
+}
+
+bool RBTree::deleteNode(int deleteKey)
+{
+    Node *parentNode = root;
+    Node *childNode = NULL;
+
+    while (true)
+    {
+        // Start the process of finding the node to delete
+        parentNode->startWriting();
+
+        if (deleteKey < parentNode->getKey())
+        {
+            childNode = parentNode->getLeft();
+        }
+        else if (deleteKey > parentNode->getKey())
+        {
+            childNode = parentNode->getRight();
+        }
+
+        if (childNode == NULL)
+        {
+            // We couldn't find the node we needed to delete, so just return false
+            parentNode->stopWriting();
+            return false;
+        }
+        else if (childNode->getKey() == deleteKey)
+        {
+            // We've found the node to delete, so lock it and get ready for deletion
+            childNode->startWriting();
+            break;
+        }
+        else
+        {
+            // This is not a node we need to delete, so keep moving
+            Node *oldNode = parentNode;
+            parentNode = childNode;
+            childNode = NULL;
+            oldNode->stopWriting();
+        }
+    }
+
+    // Time to delete the node
+    Node *newChildNode;
+    if (childNode->getKey() < parentNode->getKey())
+    {
+    }
 }
