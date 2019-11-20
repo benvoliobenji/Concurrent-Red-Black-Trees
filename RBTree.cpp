@@ -160,6 +160,7 @@ bool RBTree::deleteNode(int deleteKey)
     }
 
     // Time to delete the node
+    parentNode->stopWriting();
     Color originalColor = childNode->getNodeColor();
     Node *yNode = childNode;
     Node *xNode = NULL;
@@ -212,9 +213,9 @@ bool RBTree::deleteNode(int deleteKey)
         yNode->setNodeColor(childNode->getNodeColor());
 
         yNode->stopWriting();
-        xNode->stopWriting();
     }
 
+    xNode->stopWriting();
     childNode->stopWriting();
     delete(childNode);
 
