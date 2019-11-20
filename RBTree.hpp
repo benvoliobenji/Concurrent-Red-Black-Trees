@@ -13,6 +13,10 @@ class RBTree
 
         void rotateRight(Node *rotateNode);
 
+        void transplant(Node *removedNode, Node *newNode);
+
+        Node *minimum(Node *node);
+
     public:
         RBTree() { root = NULL; };
 

@@ -160,9 +160,68 @@ bool RBTree::deleteNode(int deleteKey)
     }
 
     // Time to delete the node
-    Node *newChildNode;
-    if (childNode->getKey() < parentNode->getKey())
+    Color originalColor = childNode->getNodeColor();
+    Node *yNode = childNode;
+    Node *xNode = NULL;
+
+    if (childNode->getLeft() == NULL)
     {
+        xNode = childNode->getRight();
+        xNode->startWriting();
+
+        transplant(childNode, childNode->getRight());
+    }
+    else if (childNode->getRight() == NULL)
+    {
+        xNode = childNode->getLeft();
+        xNode->startWriting();
+
+        transplant(childNode, childNode->getLeft());
+    }
+    else
+    {
+        yNode = minimum(childNode->getRight());
+        yNode->startWriting();
+
+        originalColor = yNode->getNodeColor();
+
+        xNode = yNode->getRight();
+        xNode->startWriting();
+
+        if (yNode->getParent() == childNode)
+        {
+            xNode->setParent(yNode);
+        }
+        else
+        {
+            transplant(yNode, yNode->getRight());
+            yNode->setRight(childNode->getRight());
+
+            yNode->getRight()->startWriting();
+            yNode->getRight()->setParent(yNode);
+            yNode->getRight()->stopWriting();
+        }
+
+        transplant(childNode, yNode);
+        yNode->setLeft(childNode->getLeft());
+
+        yNode->getLeft()->startWriting();
+        yNode->getLeft()->setParent(yNode);
+        yNode->getLeft()->stopWriting();
+
+        yNode->setNodeColor(childNode->getNodeColor());
+
+        yNode->stopWriting();
+        xNode->stopWriting();
+    }
+
+    childNode->stopWriting();
+    delete(childNode);
+
+    if (originalColor == Color::BLACK)
+    {
+        // TODO: Fix deletion violation code implementation
+        fixDeletionViolation(xNode);
     }
 }
 
@@ -431,4 +490,40 @@ void RBTree::rotateRight(Node *rotateNode)
 
     rotateNodeLeft->stopWriting();
     rotateNode->stopWriting();
+}
+
+
+void RBTree::transplant(Node *removedNode, Node *newNode)
+{
+    if (removedNode->getParent() == NULL)
+    {
+        root = newNode;
+    }
+    else if (removedNode == removedNode->getParent()->getLeft())
+    {
+        removedNode->getParent()->setLeft(newNode);
+    }
+    else
+    {
+        removedNode->getParent()->setRight(newNode);
+    }
+
+    newNode->setParent(removedNode->getParent());
+}
+
+Node *RBTree::minimum(Node *node)
+{
+    node->startReading();
+    Node *leftNode = NULL;
+
+    while (node->getLeft() != NULL)
+    {
+        leftNode = node->getLeft();
+        leftNode->startReading();
+        node->stopReading();
+        node = leftNode;
+    }
+
+    node->stopReading();
+    return node;
 }
