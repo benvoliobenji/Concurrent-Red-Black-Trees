@@ -7,6 +7,12 @@ class RBTree
     private:
         Node *root;
 
+        void fixInsertionViolation(Node *insertionNode);
+
+        void rotateLeft(Node *rotateNode);
+
+        void rotateRight(Node *rotateNode);
+
     public:
         RBTree() { root = NULL; };
 

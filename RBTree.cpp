@@ -49,7 +49,6 @@ bool RBTree::insert(int insertKey)
 {
     Node *newNode = new Node(insertKey);
     return insertNode(newNode);
-    // Actually call the reorg of the tree here rather than in the helper function
 }
 
 bool RBTree::insertNode(Node* newNode)
@@ -102,7 +101,7 @@ bool RBTree::insertNode(Node* newNode)
                 newNode->setParent(parentNode);
                 newNode->stopWriting();
 
-                //TODO: Call a rebalance here to make sure the tree is balanced and doesn't have any conflicts
+                fixInsertionViolation(newNode);
                 return true;
 
             }
@@ -165,4 +164,271 @@ bool RBTree::deleteNode(int deleteKey)
     if (childNode->getKey() < parentNode->getKey())
     {
     }
+}
+
+void RBTree::fixInsertionViolation(Node *insertionNode)
+{
+    Node *violationNode = insertionNode;
+    violationNode->startWriting();
+
+
+    Node *parent = NULL;
+    Node *grandParent = NULL;
+
+    parent = violationNode->getParent();
+    
+    parent->startWriting();
+
+    while ((violationNode != root) && (violationNode->getNodeColor() == Color::BLACK) && (parent->getNodeColor() == Color::RED))
+    {
+        if (parent != NULL && parent != violationNode)
+        {
+            parent->stopWriting();
+        }
+        if (grandParent != NULL && grandParent != violationNode)
+        {
+            grandParent->stopWriting();
+        }
+
+        parent = violationNode->getParent();
+        parent->startWriting();
+
+        grandParent = parent->getParent();
+        grandParent->startWriting();
+
+        // 1st Case: Parent of the violation node is the left child of grandparent
+        if (parent == grandParent->getLeft())
+        {
+            Node *uncle = grandParent->getRight();
+
+            if (uncle != NULL)
+            {
+                uncle->startWriting();
+
+                // Case 1A: Uncle of violation node is also red
+                // Only need to recolor
+                if (uncle->getNodeColor() == Color::RED)
+                {
+                    grandParent->setNodeColor(Color::RED);
+                    parent->setNodeColor(Color::BLACK);
+                    uncle->setNodeColor(Color::BLACK);
+
+                    violationNode->stopWriting();
+                    violationNode = grandParent;
+                }
+
+                uncle->stopWriting();
+            }
+            else
+            {
+                // Case 1B: violation node is the right child of its parent
+                // Now we need to do a left-rotation
+                if (violationNode == parent->getRight())
+                {
+                    violationNode->stopWriting();
+                    parent->stopWriting();
+                    grandParent->stopWriting();
+
+                    rotateLeft(parent);
+
+                    parent->startWriting();
+                    grandParent->startWriting();
+
+                    violationNode = parent;
+                    parent = parent->getParent();
+                }
+                else
+                {
+                    // Case 1C: violation node is the left child of its parent
+                    // Now we need to do a right-rotation
+                    violationNode->stopWriting();
+                    parent->stopWriting();
+                    grandParent->stopWriting();
+
+                    rotateRight(grandParent);
+
+                    parent->startWriting();
+                    grandParent->startWriting();
+
+                    // Swap the colors
+                    Color parentColor = parent->getNodeColor();
+                    parent->setNodeColor(grandParent->getNodeColor());
+                    grandParent->setNodeColor(parentColor);
+
+                    violationNode = parent;
+                }   
+            }
+        }
+        // Case 2: parent is the right child of  grandParent
+        else
+        {
+            Node *uncle = grandParent->getLeft();
+
+            if (uncle != NULL)
+            {
+                uncle->startWriting();
+
+                // Case 2A: Uncle is also red
+                // Only need to recolor
+                if (uncle->getNodeColor() == Color::RED)
+                {
+                    grandParent->setNodeColor(Color::RED);
+                    parent->setNodeColor(Color::BLACK);
+                    uncle->setNodeColor(Color::BLACK);
+
+                    violationNode->stopWriting();
+                    violationNode = grandParent;
+                }
+
+                uncle->stopWriting();
+            }
+            else
+            {
+                // Case 2B: violationNode is left child of parent
+                // Now we do a right-rotation
+                if (violationNode == parent->getLeft())
+                {
+                    violationNode->stopWriting();
+                    parent->stopWriting();
+                    grandParent->stopWriting();
+
+                    rotateRight(parent);
+
+                    parent->startWriting();
+                    grandParent->startWriting();
+
+                    violationNode = parent;
+                    parent = parent->getParent();
+                }
+                else
+                {
+                    // Case 2C: violationNode is right child of parent
+                    // Now we do a left-rotation
+                    violationNode->stopWriting();
+                    parent->stopWriting();
+                    grandParent->stopWriting();
+
+                    rotateLeft(grandParent);
+
+                    parent->startWriting();
+                    grandParent->startWriting();
+
+                    // Swap the colors
+                    Color parentColor = parent->getNodeColor();
+                    parent->setNodeColor(grandParent->getNodeColor());
+                    grandParent->setNodeColor(parentColor);
+
+                    violationNode = parent;
+                }    
+            }
+        }      
+    }
+
+    // Make sure we stop writing
+    violationNode->stopWriting();
+
+    if (parent != NULL && parent != violationNode)
+    {
+        parent->stopWriting();
+    }
+    if (grandParent != NULL && grandParent != violationNode && grandParent != parent)
+    {
+        grandParent->stopWriting();
+    }
+
+    // Make sure we set the root to black
+    root->startWriting();
+    root->setNodeColor(Color::BLACK);
+}
+
+void RBTree::rotateLeft(Node *rotateNode)
+{
+    rotateNode->startWriting();
+    Node *rotateNodeRight = rotateNode->getRight();
+
+    rotateNodeRight->startWriting();
+
+    rotateNode->setRight(rotateNodeRight->getLeft());
+
+    if (rotateNode->getRight() != NULL)
+    {
+        rotateNode->getRight()->startWriting();
+        rotateNode->getRight()->setParent(rotateNode);
+        rotateNode->getRight()->stopWriting();
+    }
+
+    rotateNodeRight->setParent(rotateNode->getParent());
+
+    if (rotateNode->getParent() == NULL)
+    {
+        root = rotateNodeRight;
+    }
+    else
+    {
+        Node *rotateNodeParent = rotateNode->getParent();
+        rotateNodeParent->startWriting();
+
+        if (rotateNode == rotateNodeParent->getLeft())
+        {
+            rotateNodeParent->setLeft(rotateNodeRight);
+        }
+        else
+        {
+            rotateNodeParent->setRight(rotateNodeRight);
+        }
+
+        rotateNodeParent->stopWriting();
+    }
+
+    rotateNodeRight->setLeft(rotateNode);
+    rotateNode->setParent(rotateNodeRight);
+
+    rotateNodeRight->stopWriting();
+    rotateNode->stopWriting();
+}
+
+void RBTree::rotateRight(Node *rotateNode)
+{
+    rotateNode->startWriting();
+
+    Node *rotateNodeLeft = rotateNode->getLeft();
+    rotateNodeLeft->startWriting();
+
+    rotateNode->setLeft(rotateNodeLeft->getRight());
+
+    if (rotateNode->getLeft() != NULL)
+    {
+        rotateNode->getLeft()->startWriting();
+        rotateNode->getLeft()->setParent(rotateNode);
+        rotateNode->getLeft()->stopWriting();
+    }
+
+    rotateNodeLeft->setParent(rotateNode->getParent());
+
+    if (rotateNode->getParent() == NULL)
+    {
+        root = rotateNodeLeft;
+    }
+    else
+    {
+        Node *rotateNodeParent = rotateNode->getParent();
+        rotateNodeParent->startWriting();
+
+        if (rotateNode == rotateNodeParent->getLeft())
+        {
+            rotateNodeParent->setLeft(rotateNodeLeft);
+        }
+        else
+        {
+            rotateNodeParent->setRight(rotateNodeLeft);
+        }
+        
+        rotateNodeParent->stopWriting();
+    }
+
+    rotateNodeLeft->setRight(rotateNode);
+    rotateNode->setParent(rotateNodeLeft);
+
+    rotateNodeLeft->stopWriting();
+    rotateNode->stopWriting();
 }
