@@ -11,14 +11,16 @@ bool RBTree::search(int searchKey)
     {
         Node *parentNode = root;
         Node *childNode = NULL;
+
+        // Start reading first
+        startReadingNode(parentNode);
+
         while (true)
         {
-            // Start reading first
-            parentNode->startReading();
-
             // Check on the key
             if (parentNode->getKey() == searchKey)
             {
+                stopReadingNode(parentNode);
                 return true;
             }
             else if (parentNode->getKey() < searchKey)
@@ -37,7 +39,8 @@ bool RBTree::search(int searchKey)
             else
             {
                 // Stop reading and move to the next node
-                parentNode->stopReading();
+                startReadingNode(childNode);
+                stopReadingNode(parentNode);
                 parentNode = childNode;
                 childNode = NULL;
             }
@@ -54,23 +57,28 @@ bool RBTree::insert(int insertKey)
 bool RBTree::insertNode(Node* newNode)
 {
     // First, check to see if this is the first node in the tree
+    // This is the base case
     if (root == NULL)
     {
+        startWritingNode(newNode);
         newNode->setNodeColor(Color::BLACK);
-        newNode = root;
+        root = newNode;
+        stopWritingNode(newNode);
         return true;
     }
+    // Else, start traversing to find the best spot to put the node
     else
     {
         Node *parentNode = root;
         Node *childNode = NULL;
 
+        // Start with reading to find the leaf node to insert on
+        // Using writing condition variable to enforce execution order
+        startWritingNode(parentNode);
+
         while(true)
         {
-            // Start with reading to find the leaf node to insert on
-            // Using writing condition variable to enforce execution order
-            parentNode->startWriting();
-
+            // Find an appropriate child node based on the key
             if (newNode->getKey() > parentNode->getKey())
             {
                 childNode = parentNode->getRight();
@@ -80,10 +88,9 @@ bool RBTree::insertNode(Node* newNode)
                 childNode = parentNode->getLeft();
             }
 
+            // If the child is null, then we've hit a spot to insert
             if (childNode == NULL)
             {
-                // Do we need to check for existence?
-
                 // Set the parent's child
                 if (newNode->getKey() > parentNode->getKey())
                 {
@@ -94,13 +101,14 @@ bool RBTree::insertNode(Node* newNode)
                     parentNode->setLeft(newNode);
                 }
 
-                parentNode->stopWriting();
+                stopWritingNode(parentNode);
 
                 // Set the child's parent
-                newNode->startWriting();
+                startWritingNode(newNode);
                 newNode->setParent(parentNode);
-                newNode->stopWriting();
+                stopWritingNode(newNode);
 
+                // The child is inserted, now check for potential violations
                 fixInsertionViolation(newNode);
                 return true;
 
@@ -108,12 +116,11 @@ bool RBTree::insertNode(Node* newNode)
             else
             {
                 // This is not a leaf node, so continue traversal
-                Node *oldNode = parentNode;
+                startWritingNode(childNode);
+                stopWritingNode(parentNode);
                 parentNode = childNode;
                 childNode = NULL;
-                oldNode->stopWriting();
             }
-            
         }
     }
 }
@@ -123,11 +130,11 @@ bool RBTree::deleteNode(int deleteKey)
     Node *parentNode = root;
     Node *childNode = NULL;
 
+    startWritingNode(parentNode);
+
+    // Start the search for the node to delete
     while (true)
     {
-        // Start the process of finding the node to delete
-        parentNode->startWriting();
-
         if (deleteKey < parentNode->getKey())
         {
             childNode = parentNode->getLeft();
@@ -140,54 +147,62 @@ bool RBTree::deleteNode(int deleteKey)
         if (childNode == NULL)
         {
             // We couldn't find the node we needed to delete, so just return false
-            parentNode->stopWriting();
+            stopWritingNode(parentNode);
             return false;
         }
         else if (childNode->getKey() == deleteKey)
         {
             // We've found the node to delete, so lock it and get ready for deletion
-            childNode->startWriting();
+            startWritingNode(childNode);
             break;
         }
         else
         {
             // This is not a node we need to delete, so keep moving
-            Node *oldNode = parentNode;
+            startWritingNode(childNode);
+            stopWritingNode(parentNode);
             parentNode = childNode;
             childNode = NULL;
-            oldNode->stopWriting();
         }
     }
 
     // Time to delete the node
-    parentNode->stopWriting();
+    stopWritingNode(parentNode);
+
+    // First, get the original color of the node to delete
     Color originalColor = childNode->getNodeColor();
+
     Node *yNode = childNode;
     Node *xNode = NULL;
 
     if (childNode->getLeft() == NULL)
     {
         xNode = childNode->getRight();
-        xNode->startWriting();
+        startWritingNode(xNode);
 
+        // Transplant the child with the child's right node
         transplant(childNode, childNode->getRight());
     }
     else if (childNode->getRight() == NULL)
     {
         xNode = childNode->getLeft();
-        xNode->startWriting();
+        startWritingNode(xNode);
 
+        // Transplant the child with the child's left node
         transplant(childNode, childNode->getLeft());
     }
     else
     {
+        // Find the minimum value in the child's right tree
         yNode = minimum(childNode->getRight());
-        yNode->startWriting();
+        startWritingNode(yNode);
 
+        // Change the original color to yNode
         originalColor = yNode->getNodeColor();
 
+        // Get the right children of the yNode
         xNode = yNode->getRight();
-        xNode->startWriting();
+        startWritingNode(xNode);
 
         if (yNode->getParent() == childNode)
         {
@@ -198,27 +213,28 @@ bool RBTree::deleteNode(int deleteKey)
             transplant(yNode, yNode->getRight());
             yNode->setRight(childNode->getRight());
 
-            yNode->getRight()->startWriting();
+            startWritingNode(yNode->getRight());
             yNode->getRight()->setParent(yNode);
-            yNode->getRight()->stopWriting();
+            stopWritingNode(yNode->getRight());
         }
 
         transplant(childNode, yNode);
         yNode->setLeft(childNode->getLeft());
 
-        yNode->getLeft()->startWriting();
+        startWritingNode(yNode->getLeft());
         yNode->getLeft()->setParent(yNode);
-        yNode->getLeft()->stopWriting();
+        stopWritingNode(yNode->getLeft());
 
         yNode->setNodeColor(childNode->getNodeColor());
 
-        yNode->stopWriting();
+        stopWritingNode(yNode);
     }
 
-    xNode->stopWriting();
-    childNode->stopWriting();
+    stopWritingNode(xNode);
+    stopWritingNode(childNode);
     delete(childNode);
 
+    // We only need to fix violations if the original color of the transplanted node was black
     if (originalColor == Color::BLACK)
     {
         fixDeletionViolation(xNode);
@@ -230,56 +246,57 @@ void RBTree::fixDeletionViolation(Node *deletionNode)
     Node *sNode;
     Node *violationNode = deletionNode;
 
-    violationNode->startWriting();
+    startWritingNode(violationNode);
 
     while (violationNode != root && violationNode->getNodeColor() == Color::BLACK)
     {
         Node *parent = violationNode->getParent();
-        parent->startWriting();
+        startWritingNode(parent);
+
         if (violationNode == parent->getLeft())
         {
             sNode = parent->getRight();
-            sNode->startWriting();
+            startWritingNode(sNode);
 
             if (sNode->getNodeColor() == Color::RED)
             {
                 sNode->setNodeColor(Color::BLACK);
                 parent->setNodeColor(Color::RED);
 
-                sNode->stopWriting();
-                parent->stopWriting();
+                stopWritingNode(sNode);
+                stopWritingNode(parent);
                 rotateLeft(parent);
 
-                sNode->startWriting();
+                startWritingNode(sNode);
                 parent = sNode->getParent();
-                parent->startWriting();
+                startWritingNode(parent);
 
-                sNode->stopWriting();
+                stopWritingNode(sNode);
                 sNode = parent->getRight();
-                parent->stopWriting();
-                sNode->startWriting();
+                stopWritingNode(parent);
+                startWritingNode(sNode);
             }
 
             Node *sLeftNode = sNode->getLeft();
             Node *sRightNode = sNode->getRight();
 
-            sLeftNode->startWriting();
-            sRightNode->startWriting();
+            startWritingNode(sLeftNode);
+            startWritingNode(sRightNode);
             if (sLeftNode->getNodeColor() == Color::BLACK && sRightNode->getNodeColor() == Color::BLACK)
             {
                 sNode->setNodeColor(Color::RED);
                 Node *tempNode = violationNode->getParent();
-                violationNode->stopWriting();
+                stopWritingNode(violationNode);
                 violationNode = tempNode;
-                violationNode->startWriting();
+                startWritingNode(violationNode);
 
                 // Now that violationNode has changed, update the parent as well
-                parent->stopWriting();
+                stopWritingNode(parent);
                 parent = violationNode->getParent();
-                parent->startWriting();
+                startWritingNode(parent);
 
-                sLeftNode->stopWriting();
-                sRightNode->stopWriting();
+                stopWritingNode(sLeftNode);
+                stopWritingNode(sRightNode);
             }
             else
             {
@@ -288,81 +305,82 @@ void RBTree::fixDeletionViolation(Node *deletionNode)
                     sLeftNode->setNodeColor(Color::BLACK);
                     sNode->setNodeColor(Color::RED);
 
-                    sLeftNode->stopWriting();
-                    sRightNode->stopWriting();
-                    sNode->stopWriting();
+                    stopWritingNode(sLeftNode);
+                    stopWritingNode(sRightNode);
+                    stopWritingNode(sNode);
 
                     rotateRight(sNode);
 
                     sNode = parent->getRight();
 
-                    sNode->startWriting();
+                    startWritingNode(sNode);
                     sLeftNode = sNode->getLeft();
                     sRightNode = sNode->getRight();
-                    sLeftNode->startWriting();
-                    sRightNode->startWriting();
+                    startWritingNode(sLeftNode);
+                    startWritingNode(sRightNode);
                 }
 
-                sLeftNode->stopWriting();
-                sRightNode->stopWriting();
+                stopWritingNode(sLeftNode);
+                stopWritingNode(sRightNode);
 
                 sNode->setNodeColor(parent->getNodeColor());
                 parent->setNodeColor(Color::BLACK);
 
                 sRightNode = sNode->getRight();
-                sRightNode->startWriting();
+                startWritingNode(sRightNode);
                 sRightNode->setNodeColor(Color::BLACK);
-                sRightNode->stopWriting();
+                stopWritingNode(sRightNode);
 
-                sNode->stopWriting();
-                violationNode->stopWriting();
-                parent->stopWriting();
+                stopWritingNode(sNode);
+                stopWritingNode(violationNode);
+                stopWritingNode(parent);
+
                 rotateLeft(parent);
 
                 violationNode = root;
-                violationNode->startWriting();
+                startWritingNode(violationNode);
             }
         }
         else
         {
             sNode = parent->getLeft();
-            sNode->startWriting();
+            startWritingNode(sNode);
 
             if (sNode->getNodeColor() == Color::RED)
             {
                 sNode->setNodeColor(Color::BLACK);
                 parent->setNodeColor(Color::RED);
 
-                sNode->stopWriting();
-                violationNode->stopWriting();
-                parent->stopWriting();
+                stopWritingNode(sNode);
+                stopWritingNode(violationNode);
+                stopWritingNode(parent);
 
                 rotateRight(parent);
 
-                violationNode->startWriting();
+                startWritingNode(violationNode);
                 parent = violationNode->getParent();
-                parent->startWriting();
+                startWritingNode(parent);
 
                 sNode = parent->getLeft();
-                sNode->startWriting();
+                startWritingNode(sNode);
             }
 
             Node *sRightNode = sNode->getRight();
             Node *sLeftNode = sNode->getLeft();
 
-            sRightNode->startWriting();
-            sLeftNode->startWriting();
+            startWritingNode(sRightNode);
+            startWritingNode(sLeftNode);
 
             if (sRightNode->getNodeColor() == Color::BLACK && sLeftNode->getNodeColor() == Color::BLACK)
             {
                 sNode->setNodeColor(Color::RED);
-                violationNode->stopWriting();
+                stopWritingNode(violationNode);
                 violationNode = parent;
                 parent = violationNode->getParent();
-                parent->startWriting();
+                startWritingNode(parent);
 
-                sRightNode->stopWriting();
-                sLeftNode->stopWriting();
+                stopWritingNode(sRightNode);
+                stopWritingNode(sLeftNode);
             }
             else
             {
@@ -371,73 +389,71 @@ void RBTree::fixDeletionViolation(Node *deletionNode)
                     sRightNode->setNodeColor(Color::BLACK);
                     sNode->setNodeColor(Color::RED);
 
-                    sLeftNode->stopWriting();
-                    sRightNode->stopWriting();
-                    sNode->stopWriting();
+                    stopWritingNode(sLeftNode);
+                    stopWritingNode(sRightNode);
+                    stopWritingNode(sNode);
 
                     rotateLeft(sNode);
 
                     sNode = parent->getLeft();
-                    sNode->startWriting();
+                    startWritingNode(sNode);
 
                     sLeftNode = sNode->getLeft();
                     sRightNode = sNode->getRight();
 
-                    sLeftNode->startWriting();
-                    sRightNode->startWriting();
+                    startWritingNode(sLeftNode);
+                    startWritingNode(sRightNode);
                 }
 
                 sNode->setNodeColor(parent->getNodeColor());
                 parent->setNodeColor(Color::BLACK);
                 sLeftNode->setNodeColor(Color::BLACK);
 
-                sLeftNode->stopWriting();
-                sRightNode->stopWriting();
-                sNode->stopWriting();
-                violationNode->stopWriting();
-                parent->stopWriting();
+                stopWritingNode(sLeftNode);
+                stopWritingNode(sRightNode);
+                stopWritingNode(sNode);
+                stopWritingNode(violationNode);
+                stopWritingNode(parent);
 
                 rotateRight(parent);
 
                 violationNode = root;
-                violationNode->startWriting();
+                startWritingNode(parent);
             }
         }
     }
 
     violationNode->setNodeColor(Color::BLACK);
-    violationNode->stopWriting();
+    stopWritingNode(violationNode);
 }
 
 void RBTree::fixInsertionViolation(Node *insertionNode)
 {
     Node *violationNode = insertionNode;
-    violationNode->startWriting();
-
+    startWritingNode(violationNode);
 
     Node *parent = NULL;
     Node *grandParent = NULL;
 
-    parent = violationNode->getParent();
-    
-    parent->startWriting();
+    parent = violationNode->getParent();  
+    startWritingNode(parent);
 
     while ((violationNode != root) && (violationNode->getNodeColor() == Color::BLACK) && (parent->getNodeColor() == Color::RED))
     {
         if (parent != NULL && parent != violationNode)
         {
-            parent->stopWriting();
+            stopWritingNode(parent);
         }
         if (grandParent != NULL && grandParent != violationNode)
         {
-            grandParent->stopWriting();
+            stopWritingNode(grandParent);
         }
 
         parent = violationNode->getParent();
-        parent->startWriting();
+        startWritingNode(parent);
 
         grandParent = parent->getParent();
-        grandParent->startWriting();
+        startWritingNode(grandParent);
 
         // 1st Case: Parent of the violation node is the left child of grandparent
         if (parent == grandParent->getLeft())
@@ -446,7 +462,7 @@ void RBTree::fixInsertionViolation(Node *insertionNode)
 
             if (uncle != NULL)
             {
-                uncle->startWriting();
+                startWritingNode(uncle);
 
                 // Case 1A: Uncle of violation node is also red
                 // Only need to recolor
@@ -456,11 +472,11 @@ void RBTree::fixInsertionViolation(Node *insertionNode)
                     parent->setNodeColor(Color::BLACK);
                     uncle->setNodeColor(Color::BLACK);
 
-                    violationNode->stopWriting();
+                    stopWritingNode(violationNode);
                     violationNode = grandParent;
                 }
 
-                uncle->stopWriting();
+                stopWritingNode(uncle);
             }
             else
             {
@@ -468,14 +484,14 @@ void RBTree::fixInsertionViolation(Node *insertionNode)
                 // Now we need to do a left-rotation
                 if (violationNode == parent->getRight())
                 {
-                    violationNode->stopWriting();
-                    parent->stopWriting();
-                    grandParent->stopWriting();
+                    stopWritingNode(violationNode);
+                    stopWritingNode(parent);
+                    stopWritingNode(grandParent);
 
                     rotateLeft(parent);
 
-                    parent->startWriting();
-                    grandParent->startWriting();
+                    startWritingNode(parent);
+                    startWritingNode(grandParent);
 
                     violationNode = parent;
                     parent = parent->getParent();
@@ -484,14 +500,14 @@ void RBTree::fixInsertionViolation(Node *insertionNode)
                 {
                     // Case 1C: violation node is the left child of its parent
                     // Now we need to do a right-rotation
-                    violationNode->stopWriting();
-                    parent->stopWriting();
-                    grandParent->stopWriting();
+                    stopWritingNode(violationNode);
+                    stopWritingNode(parent);
+                    stopWritingNode(grandParent);
 
                     rotateRight(grandParent);
 
-                    parent->startWriting();
-                    grandParent->startWriting();
+                    startWritingNode(parent);
+                    startWritingNode(grandParent);
 
                     // Swap the colors
                     Color parentColor = parent->getNodeColor();
@@ -502,14 +518,14 @@ void RBTree::fixInsertionViolation(Node *insertionNode)
                 }   
             }
         }
-        // Case 2: parent is the right child of  grandParent
+        // Case 2: parent is the right child of grandParent
         else
         {
             Node *uncle = grandParent->getLeft();
 
             if (uncle != NULL)
             {
-                uncle->startWriting();
+                startWritingNode(uncle);
 
                 // Case 2A: Uncle is also red
                 // Only need to recolor
@@ -519,11 +535,11 @@ void RBTree::fixInsertionViolation(Node *insertionNode)
                     parent->setNodeColor(Color::BLACK);
                     uncle->setNodeColor(Color::BLACK);
 
-                    violationNode->stopWriting();
+                    stopWritingNode(violationNode);
                     violationNode = grandParent;
                 }
 
-                uncle->stopWriting();
+                stopWritingNode(uncle);
             }
             else
             {
@@ -531,14 +547,14 @@ void RBTree::fixInsertionViolation(Node *insertionNode)
                 // Now we do a right-rotation
                 if (violationNode == parent->getLeft())
                 {
-                    violationNode->stopWriting();
-                    parent->stopWriting();
-                    grandParent->stopWriting();
+                    stopWritingNode(violationNode);
+                    stopWritingNode(parent);
+                    stopWritingNode(grandParent);
 
                     rotateRight(parent);
 
-                    parent->startWriting();
-                    grandParent->startWriting();
+                    startWritingNode(parent);
+                    startWritingNode(grandParent);
 
                     violationNode = parent;
                     parent = parent->getParent();
@@ -547,14 +563,14 @@ void RBTree::fixInsertionViolation(Node *insertionNode)
                 {
                     // Case 2C: violationNode is right child of parent
                     // Now we do a left-rotation
-                    violationNode->stopWriting();
-                    parent->stopWriting();
-                    grandParent->stopWriting();
+                    stopWritingNode(violationNode);
+                    stopWritingNode(parent);
+                    stopWritingNode(grandParent);
 
                     rotateLeft(grandParent);
 
-                    parent->startWriting();
-                    grandParent->startWriting();
+                    stopWritingNode(parent);
+                    stopWritingNode(grandParent);
 
                     // Swap the colors
                     Color parentColor = parent->getNodeColor();
@@ -568,28 +584,28 @@ void RBTree::fixInsertionViolation(Node *insertionNode)
     }
 
     // Make sure we stop writing
-    violationNode->stopWriting();
+    stopWritingNode(violationNode);
 
     if (parent != NULL && parent != violationNode)
     {
-        parent->stopWriting();
+        stopWritingNode(parent);
     }
     if (grandParent != NULL && grandParent != violationNode && grandParent != parent)
     {
-        grandParent->stopWriting();
+        stopWritingNode(grandParent);
     }
 
     // Make sure we set the root to black
-    root->startWriting();
+    startWritingNode(root);
     root->setNodeColor(Color::BLACK);
 }
 
 void RBTree::rotateLeft(Node *rotateNode)
 {
-    rotateNode->startWriting();
+    startWritingNode(rotateNode);
     Node *rotateNodeRight = rotateNode->getRight();
 
-    rotateNodeRight->startWriting();
+    startWritingNode(rotateNodeRight);
 
     rotateNode->setRight(rotateNodeRight->getLeft());
 

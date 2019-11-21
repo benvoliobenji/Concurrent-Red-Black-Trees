@@ -7,6 +7,38 @@ class RBTree
     private:
         Node *root;
 
+        void startReadingNode(Node *readingNode)
+        {
+            if (readingNode != NULL)
+            {
+                readingNode->startReading();
+            }
+        }
+
+        void stopReadingNode(Node *readingNode)
+        {
+            if (readingNode != NULL)
+            {
+                readingNode->stopReading();
+            }
+        }
+
+        void startWritingNode(Node *writingNode)
+        {
+            if (writingNode != NULL)
+            {
+                writingNode->startWriting();
+            }
+        }
+
+        void stopWritingNode(Node *writingNode)
+        {
+            if (writingNode != NULL)
+            {
+                writingNode->stopWriting();
+            }
+        }
+
         void fixInsertionViolation(Node *insertionNode);
 
         void fixDeletionViolation(Node *deletionNode);
