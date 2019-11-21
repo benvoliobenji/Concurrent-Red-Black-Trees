@@ -611,9 +611,9 @@ void RBTree::rotateLeft(Node *rotateNode)
 
     if (rotateNode->getRight() != NULL)
     {
-        rotateNode->getRight()->startWriting();
+        startWritingNode(rotateNode->getRight());
         rotateNode->getRight()->setParent(rotateNode);
-        rotateNode->getRight()->stopWriting();
+        stopWritingNode(rotateNode->getLeft());
     }
 
     rotateNodeRight->setParent(rotateNode->getParent());
@@ -625,7 +625,7 @@ void RBTree::rotateLeft(Node *rotateNode)
     else
     {
         Node *rotateNodeParent = rotateNode->getParent();
-        rotateNodeParent->startWriting();
+        startWritingNode(rotateNodeParent);
 
         if (rotateNode == rotateNodeParent->getLeft())
         {
@@ -636,30 +636,30 @@ void RBTree::rotateLeft(Node *rotateNode)
             rotateNodeParent->setRight(rotateNodeRight);
         }
 
-        rotateNodeParent->stopWriting();
+        stopWritingNode(rotateNodeParent);
     }
 
     rotateNodeRight->setLeft(rotateNode);
     rotateNode->setParent(rotateNodeRight);
 
-    rotateNodeRight->stopWriting();
-    rotateNode->stopWriting();
+    stopWritingNode(rotateNodeRight);
+    stopWritingNode(rotateNode);
 }
 
 void RBTree::rotateRight(Node *rotateNode)
 {
-    rotateNode->startWriting();
+    startWritingNode(rotateNode);
 
     Node *rotateNodeLeft = rotateNode->getLeft();
-    rotateNodeLeft->startWriting();
+    startWritingNode(rotateNodeLeft);
 
     rotateNode->setLeft(rotateNodeLeft->getRight());
 
     if (rotateNode->getLeft() != NULL)
     {
-        rotateNode->getLeft()->startWriting();
+        startWritingNode(rotateNode->getLeft());
         rotateNode->getLeft()->setParent(rotateNode);
-        rotateNode->getLeft()->stopWriting();
+        stopWritingNode(rotateNode->getLeft());
     }
 
     rotateNodeLeft->setParent(rotateNode->getParent());
@@ -671,7 +671,7 @@ void RBTree::rotateRight(Node *rotateNode)
     else
     {
         Node *rotateNodeParent = rotateNode->getParent();
-        rotateNodeParent->startWriting();
+        startWritingNode(rotateNodeParent);
 
         if (rotateNode == rotateNodeParent->getLeft())
         {
@@ -682,14 +682,14 @@ void RBTree::rotateRight(Node *rotateNode)
             rotateNodeParent->setRight(rotateNodeLeft);
         }
         
-        rotateNodeParent->stopWriting();
+        stopWritingNode(rotateNodeParent);
     }
 
     rotateNodeLeft->setRight(rotateNode);
     rotateNode->setParent(rotateNodeLeft);
 
-    rotateNodeLeft->stopWriting();
-    rotateNode->stopWriting();
+    stopWritingNode(rotateNodeLeft);
+    stopWritingNode(rotateNode)
 }
 
 
@@ -713,17 +713,18 @@ void RBTree::transplant(Node *removedNode, Node *newNode)
 
 Node *RBTree::minimum(Node *node)
 {
-    node->startReading();
+    startReadingNode(node);
     Node *leftNode = NULL;
 
     while (node->getLeft() != NULL)
     {
         leftNode = node->getLeft();
-        leftNode->startReading();
+        startReadingNode(leftNode);
+        stopReadingNode(node);
         node->stopReading();
         node = leftNode;
     }
 
-    node->stopReading();
+    stopReadingNode(node);
     return node;
 }
