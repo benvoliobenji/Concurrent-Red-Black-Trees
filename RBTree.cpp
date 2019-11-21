@@ -221,9 +221,192 @@ bool RBTree::deleteNode(int deleteKey)
 
     if (originalColor == Color::BLACK)
     {
-        // TODO: Fix deletion violation code implementation
         fixDeletionViolation(xNode);
     }
+}
+
+void RBTree::fixDeletionViolation(Node *deletionNode)
+{
+    Node *sNode;
+    Node *violationNode = deletionNode;
+
+    violationNode->startWriting();
+
+    while (violationNode != root && violationNode->getNodeColor() == Color::BLACK)
+    {
+        Node *parent = violationNode->getParent();
+        parent->startWriting();
+        if (violationNode == parent->getLeft())
+        {
+            sNode = parent->getRight();
+            sNode->startWriting();
+
+            if (sNode->getNodeColor() == Color::RED)
+            {
+                sNode->setNodeColor(Color::BLACK);
+                parent->setNodeColor(Color::RED);
+
+                sNode->stopWriting();
+                parent->stopWriting();
+                rotateLeft(parent);
+
+                sNode->startWriting();
+                parent = sNode->getParent();
+                parent->startWriting();
+
+                sNode->stopWriting();
+                sNode = parent->getRight();
+                parent->stopWriting();
+                sNode->startWriting();
+            }
+
+            Node *sLeftNode = sNode->getLeft();
+            Node *sRightNode = sNode->getRight();
+
+            sLeftNode->startWriting();
+            sRightNode->startWriting();
+            if (sLeftNode->getNodeColor() == Color::BLACK && sRightNode->getNodeColor() == Color::BLACK)
+            {
+                sNode->setNodeColor(Color::RED);
+                Node *tempNode = violationNode->getParent();
+                violationNode->stopWriting();
+                violationNode = tempNode;
+                violationNode->startWriting();
+
+                // Now that violationNode has changed, update the parent as well
+                parent->stopWriting();
+                parent = violationNode->getParent();
+                parent->startWriting();
+
+                sLeftNode->stopWriting();
+                sRightNode->stopWriting();
+            }
+            else
+            {
+                if(sRightNode->getNodeColor() == Color::BLACK)
+                {
+                    sLeftNode->setNodeColor(Color::BLACK);
+                    sNode->setNodeColor(Color::RED);
+
+                    sLeftNode->stopWriting();
+                    sRightNode->stopWriting();
+                    sNode->stopWriting();
+
+                    rotateRight(sNode);
+
+                    sNode = parent->getRight();
+
+                    sNode->startWriting();
+                    sLeftNode = sNode->getLeft();
+                    sRightNode = sNode->getRight();
+                    sLeftNode->startWriting();
+                    sRightNode->startWriting();
+                }
+
+                sLeftNode->stopWriting();
+                sRightNode->stopWriting();
+
+                sNode->setNodeColor(parent->getNodeColor());
+                parent->setNodeColor(Color::BLACK);
+
+                sRightNode = sNode->getRight();
+                sRightNode->startWriting();
+                sRightNode->setNodeColor(Color::BLACK);
+                sRightNode->stopWriting();
+
+                sNode->stopWriting();
+                violationNode->stopWriting();
+                parent->stopWriting();
+                rotateLeft(parent);
+
+                violationNode = root;
+                violationNode->startWriting();
+            }
+        }
+        else
+        {
+            sNode = parent->getLeft();
+            sNode->startWriting();
+
+            if (sNode->getNodeColor() == Color::RED)
+            {
+                sNode->setNodeColor(Color::BLACK);
+                parent->setNodeColor(Color::RED);
+
+                sNode->stopWriting();
+                violationNode->stopWriting();
+                parent->stopWriting();
+
+                rotateRight(parent);
+
+                violationNode->startWriting();
+                parent = violationNode->getParent();
+                parent->startWriting();
+
+                sNode = parent->getLeft();
+                sNode->startWriting();
+            }
+
+            Node *sRightNode = sNode->getRight();
+            Node *sLeftNode = sNode->getLeft();
+
+            sRightNode->startWriting();
+            sLeftNode->startWriting();
+
+            if (sRightNode->getNodeColor() == Color::BLACK && sLeftNode->getNodeColor() == Color::BLACK)
+            {
+                sNode->setNodeColor(Color::RED);
+                violationNode->stopWriting();
+                violationNode = parent;
+                parent = violationNode->getParent();
+                parent->startWriting();
+
+                sRightNode->stopWriting();
+                sLeftNode->stopWriting();
+            }
+            else
+            {
+                if (sLeftNode->getNodeColor() == Color::BLACK)
+                {
+                    sRightNode->setNodeColor(Color::BLACK);
+                    sNode->setNodeColor(Color::RED);
+
+                    sLeftNode->stopWriting();
+                    sRightNode->stopWriting();
+                    sNode->stopWriting();
+
+                    rotateLeft(sNode);
+
+                    sNode = parent->getLeft();
+                    sNode->startWriting();
+
+                    sLeftNode = sNode->getLeft();
+                    sRightNode = sNode->getRight();
+
+                    sLeftNode->startWriting();
+                    sRightNode->startWriting();
+                }
+
+                sNode->setNodeColor(parent->getNodeColor());
+                parent->setNodeColor(Color::BLACK);
+                sLeftNode->setNodeColor(Color::BLACK);
+
+                sLeftNode->stopWriting();
+                sRightNode->stopWriting();
+                sNode->stopWriting();
+                violationNode->stopWriting();
+                parent->stopWriting();
+
+                rotateRight(parent);
+
+                violationNode = root;
+                violationNode->startWriting();
+            }
+        }
+    }
+
+    violationNode->setNodeColor(Color::BLACK);
+    violationNode->stopWriting();
 }
 
 void RBTree::fixInsertionViolation(Node *insertionNode)

@@ -9,6 +9,8 @@ class RBTree
 
         void fixInsertionViolation(Node *insertionNode);
 
+        void fixDeletionViolation(Node *deletionNode);
+
         void rotateLeft(Node *rotateNode);
 
         void rotateRight(Node *rotateNode);
