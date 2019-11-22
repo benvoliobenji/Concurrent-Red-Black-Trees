@@ -27,14 +27,20 @@ FileOutput Parser::parse(const char *fileToParse)
 
     while (std::getline(file, line))
     {
-        if (line.compare("\n") == 0)
+        std::cout << "Got Line: " << line << std::endl;
+        line = trim(line);
+
+        if (line.empty())
         {
+            std::cout << "Empty Line" << std::endl;
+
             nodesRead = true;
 
             threadsRead = (nodesRead && (threads.size() > 0)) ? true : false;
 
             if (threadsRead)
             {
+                std::cout << "Parsing threads" << std::endl;
                 parseThreads(threads);
             }
         }
@@ -42,6 +48,7 @@ FileOutput Parser::parse(const char *fileToParse)
         {
             if (!nodesRead)
             {
+                std::cout << "Parsing Nodes" << std::endl;
                 // Since all the nodes are on one line with no return, we can just parse this line and it'll be correct
                 parseNodes(line);
                 nodesRead = true;
@@ -54,11 +61,14 @@ FileOutput Parser::parse(const char *fileToParse)
 
                     token = trim(line);
                     threads.push_back(token);
+
+                    std::cout << "Added thread: " << token << std::endl;
                 }
                 else
                 {
                     if (!commandsRead)
                     {
+                        std::cout << "Parsing Commands" << std::endl;
                         // Same as parseNodes, all the commands are on one line, so we don't have to worry about it
                         parseCommands(line);
                         commandsRead = true;
@@ -112,9 +122,12 @@ void Parser::parseCommands(std::string commandsToParse)
 
     while (std::getline(ss, lineToken, '|'))
     {
-        if (lineToken.size() > 0)
+        lineToken = trim(lineToken);
+
+        std::cout << "Command Line: " << lineToken << std::endl;
+
+        if (!lineToken.empty())
         {
-            lineToken = trim(lineToken);
             std::stringstream ss2(lineToken);
 
             std::string commandToken;
@@ -125,11 +138,16 @@ void Parser::parseCommands(std::string commandsToParse)
             while(std::getline(ss2, commandToken, ','))
             {
                 commandToken = trim(commandToken);
+                std::cout << "Sub-Command Line: " << commandToken << std::endl;
 
                 if (!threadRead)
                 {
-                    int threadNum = (int)commandToken[commandToken.size() - 1];
+                    std::string thread = commandToken.substr(6, commandToken.size() - 6);
+
+                    int threadNum = std::stoi(thread);
+                    std::cout << "Setting thread num to: " << thread << std::endl;
                     newCommand.setThreadNum(threadNum);
+                    threadRead = true;
                 }
                 else
                 {
@@ -152,12 +170,15 @@ void Parser::parseCommands(std::string commandsToParse)
                         std::cout << "Error, not a valid command: " << command << std::endl;
                     }
 
-                    std::string nodeAffected = commandToken.substr(5, commandToken.size() - 6);
-                    int node = std::stoi(nodeAffected.substr(1, nodeAffected.size() - 3));
+                    std::string nodeAffected = commandToken.substr(6, commandToken.size() - 6);
+
+                    std::cout << "Node Affected: " << nodeAffected << std::endl;
+                    int node = std::stoi(nodeAffected.substr(1, nodeAffected.size() - 2));
                     newCommand.setNode(node);
                 }
             }
 
+            std::cout << "Added Command: " << newCommand.getThreadNum() << " " << newCommand.getNode() << std::endl;
             output.addCommand(newCommand);
         }
     }

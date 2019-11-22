@@ -57,9 +57,13 @@ int main(int argc, char *argv[])
     }
 
     std::vector<std::vector<Command>> commands = output.getCommands();
+
+    std::cout << "Size of the commands: " << commands.size() << std::endl;
+
     for (auto i = commands.begin(); i != commands.end(); ++i)
     {
         std::vector<Command> threadCommand = *i;
+        std::cout << "Size of this thread's number of commands: " << threadCommand.size() << std::endl;
         for (auto j = threadCommand.begin(); j != threadCommand.end(); ++j)
         {
             std::cout << "Thread: " << (*j).getThreadNum() << "\tNode: " << (*j).getNode() << std::endl;
