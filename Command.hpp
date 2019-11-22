@@ -24,6 +24,8 @@ class Command
             nodeAffected = newNodeAffected;
         }
 
+        Command() {}
+
         void setThreadNum(int newThreadNum) { threadNum = newThreadNum; }
         int getThreadNum() { return threadNum; }
 

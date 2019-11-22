@@ -12,9 +12,9 @@ void RBTree::printREC(Node *printNode, int level)
     if (printNode != NULL)
     {
         startReadingNode(printNode);
-        printREC(printNode->getLeft(), level + 1);
         std::string color = (printNode->getNodeColor() == Color::BLACK) ? "b" : "r";
         std::cout << printNode->getKey() << color << " " << "Level: " << level << " ";
+        printREC(printNode->getLeft(), level + 1);
         printREC(printNode->getRight(), level + 1);
         stopReadingNode(printNode);
     }

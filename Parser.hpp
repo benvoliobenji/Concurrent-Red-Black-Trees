@@ -9,11 +9,11 @@ class Parser
     private:
         FileOutput output;
 
-        void parseNodes();
+        void parseNodes(std::string nodeString);
 
-        void parseThreads();
+        void parseThreads(std::vector<std::string> threadsToParse);
 
-        void parseCommands();
+        void parseCommands(std::string commandsToParse);
 
     public:
         Parser()
