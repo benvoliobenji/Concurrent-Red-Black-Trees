@@ -39,6 +39,8 @@ class RBTree
             }
         }
 
+        void printREC(Node *printNode, int level);
+
         void fixInsertionViolation(Node *insertionNode);
 
         void fixDeletionViolation(Node *deletionNode);
@@ -55,6 +57,8 @@ class RBTree
         RBTree() { root = NULL; };
 
         ~RBTree() { delete(root); }
+
+        void print();
         
         bool search(int searchKey);
 
