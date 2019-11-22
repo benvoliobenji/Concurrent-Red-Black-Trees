@@ -1,13 +1,17 @@
 #include <sstream>
 #include <iostream>
+#include <fstream>
 
 #include "Parser.hpp"
 #include "trim.h"
 
-FileOutput Parser::parse(std::ifstream fileToParse)
+FileOutput Parser::parse(const char *fileToParse)
 {
+    std::fstream file;
+    file.open(fileToParse);
+
     std::string line;
-    if (!fileToParse.is_open())
+    if (!file.is_open())
     {
         perror("Error opening file");
         return output;
@@ -21,7 +25,7 @@ FileOutput Parser::parse(std::ifstream fileToParse)
     bool threadsRead = false;
     bool commandsRead = false;
 
-    while (std::getline(fileToParse, line))
+    while (std::getline(file, line))
     {
         if (line.compare("\n") == 0)
         {

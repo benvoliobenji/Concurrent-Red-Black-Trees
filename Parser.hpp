@@ -1,6 +1,5 @@
 #pragma once
 
-#include <fstream>
 #include "FileOutput.hpp"
 #include "Node.hpp"
 
@@ -21,5 +20,5 @@ class Parser
             output = FileOutput();
         }
 
-        FileOutput parse(std::ifstream fileToParse);
+        FileOutput parse(const char *fileToParse);
 };

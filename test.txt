@@ -1,0 +1,7 @@
+3b, 7b, 8r, 10b, 11r, 18r, 22b, 26r
+
+thread1
+thread2
+thread3
+
+thread1, search(10)  ||  thread2, delete(10)  ||  thread3, insert(15)  ||  thread1, insert(5)  ||  thread3, search(20)

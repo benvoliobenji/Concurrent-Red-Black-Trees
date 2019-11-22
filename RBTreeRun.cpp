@@ -1,5 +1,9 @@
 #include "Node.hpp"
 #include "RBTree.hpp"
+#include "Parser.hpp"
+#include "FileOutput.hpp"
+
+#include <fstream>
 #include <iostream>
 
 int main(int argc, char *argv[])
@@ -41,4 +45,24 @@ int main(int argc, char *argv[])
     std::cout << "Finding node 7: " << found << std::endl;
 
     tree.print();
+
+    Parser parser = Parser();
+    FileOutput output = parser.parse(argv[1]);
+
+    std::vector<Node *> nodes = output.getNodes();
+
+    for (auto i = nodes.begin(); i != nodes.end(); ++i)
+    {
+        std::cout << "Node: " << (*i)->getKey() << std::endl;
+    }
+
+    std::vector<std::vector<Command>> commands = output.getCommands();
+    for (auto i = commands.begin(); i != commands.end(); ++i)
+    {
+        std::vector<Command> threadCommand = *i;
+        for (auto j = threadCommand.begin(); j != threadCommand.end(); ++j)
+        {
+            std::cout << "Thread: " << (*j).getThreadNum() << "\tNode: " << (*j).getNode() << std::endl;
+        }
+    }
 }
