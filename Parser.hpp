@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include "FileOutput.hpp"
+#include "Node.hpp"
 
 class Parser
 {
