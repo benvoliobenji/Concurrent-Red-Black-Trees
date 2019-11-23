@@ -38,4 +38,9 @@ class ConcurrentQueue
             return message;
         }
 
+        bool notempty()
+        {
+            return !q.empty();
+        }
+
 };

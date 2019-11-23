@@ -2,30 +2,50 @@
 #include "RBTree.hpp"
 #include "Parser.hpp"
 #include "FileOutput.hpp"
+#include "ConcurrentQueue.hpp"
 
 #include <fstream>
 #include <iostream>
 #include <pthread.h>
+#include <time.h>
+#include <chrono>
 
-void threadRun(std::vector<Command> commands, RBTree& rbtree)
+struct threadArgs {
+    std::vector<Command> commands;
+    RBTree &rbtree;
+    ConcurrentQueue &q;
+};
+
+void* threadRun(void *args)
 {
+    struct threadArgs *arguments = (struct threadArgs *)args;
+    std::vector<Command> commands = arguments->commands;
+    RBTree &rbtree = arguments->rbtree;
+    ConcurrentQueue &q = arguments->q;
+
     for (auto i = commands.begin(); i != commands.end(); ++i)
     {
         Command command = (*i);
-        switch (command.getCommand())
+        if (command.getCommand() == CommandType::SEARCH)
         {
-        case CommandType::SEARCH:
-            rbtree.search(command.getNode());
-            break;
-        case CommandType::INSERT:
+            bool success = rbtree.search(command.getNode());
+            std::string successString = (success) ? "true" : "false";
+            std::string message = "thread" + command.getThreadNum();
+            message += ", search(" + command.getNode();
+            message += ")-> " + successString;
+            q.push(message);
+        }
+        else if (command.getCommand() == CommandType::INSERT)
+        {
             rbtree.insert(command.getNode());
-            break;
-        case CommandType::DELETE:
+        }
+        else if (command.getCommand() == CommandType::DELETE)
+        {
             rbtree.deleteNode(command.getNode());
-            break;
-        default:
+        }
+        else
+        {
             std::cout << "Not a valid command" << std::endl;
-            break;
         }
     }
 
@@ -72,9 +92,12 @@ int main(int argc, char *argv[])
 
     // tree.print();
 
+    auto start = std::chrono::high_resolution_clock::now();
+
     Parser parser = Parser();
     FileOutput output = parser.parse(argv[1]);
     RBTree fileTree = RBTree();
+    ConcurrentQueue q = ConcurrentQueue();
 
     std::vector<Node *> nodes = output.getNodes();
 
@@ -86,15 +109,39 @@ int main(int argc, char *argv[])
 
     std::vector<std::vector<Command>> commands = output.getCommands();
 
+    pthread_t threads[commands.size()];
     std::cout << "Size of the commands: " << commands.size() << std::endl;
-
+    
+    int threadNum = 0;
     for (auto i = commands.begin(); i != commands.end(); ++i)
     {
         std::vector<Command> threadCommand = *i;
-        std::cout << "Size of this thread's number of commands: " << threadCommand.size() << std::endl;
-        for (auto j = threadCommand.begin(); j != threadCommand.end(); ++j)
+        struct threadArgs *arguments;
+        arguments->commands = threadCommand;
+        arguments->rbtree = fileTree;
+        arguments->q = q;
+        int rc = pthread_create(&threads[threadNum], NULL, threadRun, (void *)arguments);
+        if (rc)
         {
-            std::cout << "Thread: " << (*j).getThreadNum() << "\tNode: " << (*j).getNode() << std::endl;
+            std::cout << "ERROR; return code from pthread_create() is " << rc << std::endl;
+            exit(-1);
         }
     }
+
+    for(int t = 0; t < commands.size(); t++)
+    {
+        pthread_join(threads[t], NULL);
+    }
+
+    auto done = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Time Elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(done - start).count() << std::endl;
+
+    while (q.notempty())
+    {
+        std::string message = q.pop();
+        std::cout << message << std::endl;
+    }
+
+    fileTree.print();
 }
