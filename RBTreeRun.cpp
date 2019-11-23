@@ -10,18 +10,28 @@
 #include <time.h>
 #include <chrono>
 
-struct threadArgs {
-    std::vector<Command> commands;
-    RBTree &rbtree;
-    ConcurrentQueue &q;
+class ThreadArgs
+{
+    public:
+        std::vector<Command> commands;
+        RBTree rbtree;
+        ConcurrentQueue q;
+
+        ThreadArgs(std::vector<Command> newCommands, RBTree &newTree, ConcurrentQueue &newQ)
+        {
+            commands = newCommands;
+            rbtree = newTree;
+            q = newQ;
+        }
 };
 
 void* threadRun(void *args)
 {
-    struct threadArgs *arguments = (struct threadArgs *)args;
+    ThreadArgs *arguments = static_cast<ThreadArgs*>(args);
+
     std::vector<Command> commands = arguments->commands;
-    RBTree &rbtree = arguments->rbtree;
-    ConcurrentQueue &q = arguments->q;
+    RBTree rbtree = arguments->rbtree;
+    ConcurrentQueue q = arguments->q;
 
     for (auto i = commands.begin(); i != commands.end(); ++i)
     {
@@ -33,6 +43,7 @@ void* threadRun(void *args)
             std::string message = "thread" + command.getThreadNum();
             message += ", search(" + command.getNode();
             message += ")-> " + successString;
+            std::cout << message << std::endl;
             q.push(message);
         }
         else if (command.getCommand() == CommandType::INSERT)
@@ -116,19 +127,18 @@ int main(int argc, char *argv[])
     for (auto i = commands.begin(); i != commands.end(); ++i)
     {
         std::vector<Command> threadCommand = *i;
-        struct threadArgs *arguments;
-        arguments->commands = threadCommand;
-        arguments->rbtree = fileTree;
-        arguments->q = q;
+        ThreadArgs *arguments = new ThreadArgs(threadCommand, fileTree, q);
+
         int rc = pthread_create(&threads[threadNum], NULL, threadRun, (void *)arguments);
         if (rc)
         {
             std::cout << "ERROR; return code from pthread_create() is " << rc << std::endl;
             exit(-1);
         }
+        threadNum++;
     }
 
-    for(int t = 0; t < commands.size(); t++)
+    for(size_t t = 0; t < commands.size(); t++)
     {
         pthread_join(threads[t], NULL);
     }
@@ -136,6 +146,7 @@ int main(int argc, char *argv[])
     auto done = std::chrono::high_resolution_clock::now();
 
     std::cout << "Time Elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(done - start).count() << std::endl;
+    std::cout << q.notempty() << std::endl;
 
     while (q.notempty())
     {
