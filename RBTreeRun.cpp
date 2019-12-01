@@ -40,10 +40,9 @@ void* threadRun(void *args)
         {
             bool success = rbtree.search(command.getNode());
             std::string successString = (success) ? "true" : "false";
-            std::string message = "thread" + command.getThreadNum();
-            message += ", search(" + command.getNode();
-            message += ")-> " + successString;
-            std::cout << message << std::endl;
+            std::string message = "thread" + std::to_string(command.getThreadNum());
+            message.append(", search(" + std::to_string(command.getNode()));
+            message.append(")-> " + successString);
             q.push(message);
         }
         else if (command.getCommand() == CommandType::INSERT)
@@ -65,44 +64,6 @@ void* threadRun(void *args)
 
 int main(int argc, char *argv[])
 {
-    // RBTree tree = RBTree();
-
-    // Node *node = new Node(7, Color::BLACK);
-    // tree.insertNode(node);
-
-    // node = new Node(3, Color::BLACK);
-    // tree.insertNode(node);
-
-    // node = new Node(18, Color::RED);
-    // tree.insertNode(node);
-
-    // node = new Node(10, Color::BLACK);
-    // tree.insertNode(node);
-
-    // node = new Node(8, Color::RED);
-    // tree.insertNode(node);
-
-    // node = new Node(11, Color::RED);
-    // tree.insertNode(node);
-
-    // node = new Node(22, Color::BLACK);
-    // tree.insertNode(node);
-
-    // node = new Node(26, Color::RED);
-    // tree.insertNode(node);
-
-    // tree.print();
-
-    // bool found = tree.search(7);
-    // std::cout << "Finding node 7: " << found << std::endl;
-
-    // tree.deleteNode(7);
-
-    // found = tree.search(7);
-    // std::cout << "Finding node 7: " << found << std::endl;
-
-    // tree.print();
-
     auto start = std::chrono::high_resolution_clock::now();
 
     Parser parser = Parser();
@@ -146,7 +107,6 @@ int main(int argc, char *argv[])
     auto done = std::chrono::high_resolution_clock::now();
 
     std::cout << "Time Elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(done - start).count() << std::endl;
-    std::cout << q.notempty() << std::endl;
 
     while (q.notempty())
     {

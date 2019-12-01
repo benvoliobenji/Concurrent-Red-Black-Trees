@@ -34,8 +34,6 @@ FileOutput Parser::parse(const char *fileToParse)
         {
             std::cout << "Empty Line" << std::endl;
 
-            nodesRead = true;
-
             threadsRead = (nodesRead && (threads.size() > 0)) ? true : false;
 
             if (threadsRead)
@@ -76,7 +74,7 @@ FileOutput Parser::parse(const char *fileToParse)
                     else
                     {
                         std::cout << "More data in this file: " << line << std::endl;
-                    }   
+                    }  
                 } 
             }
         }

@@ -4,16 +4,18 @@
 #include <queue>
 #include <string>
 
+#include <iostream>
+
 class ConcurrentQueue
 {
     private:
-        std::queue<std::string> q;
+        std::queue<std::string>* q;
         pthread_mutex_t mutex;
 
     public:
         ConcurrentQueue()
         {
-            q = std::queue<std::string>();
+            q = new std::queue<std::string>();
             pthread_mutex_init(&mutex, NULL);
         }
 
@@ -25,22 +27,25 @@ class ConcurrentQueue
         void push(std::string message)
         {
             pthread_mutex_lock(&mutex);
-            q.push(message);
+            q->push(message);
             pthread_mutex_unlock(&mutex);
         }
 
         std::string pop()
         {
             pthread_mutex_lock(&mutex);
-            std::string message = q.front();
-            q.pop();
+            std::string message = q->front();
+            q->pop();
             pthread_mutex_unlock(&mutex);
             return message;
         }
 
         bool notempty()
         {
-            return !q.empty();
+            pthread_mutex_lock(&mutex);
+            bool notEmpty = !q->empty();
+            pthread_mutex_unlock(&mutex);
+            return notEmpty;
         }
 
 };
