@@ -1,3 +1,4 @@
+// @author Benjamin Vogel
 #include "RBTree.hpp"
 #include <iostream>
 

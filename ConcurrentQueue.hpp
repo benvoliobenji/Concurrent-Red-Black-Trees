@@ -1,3 +1,4 @@
+// @author Benjamin Vogel
 #pragma once
 
 #include <pthread.h>
@@ -6,6 +7,10 @@
 
 #include <iostream>
 
+/**
+ * An implementation of a thread-safe queue needed for holding the results of different search() operations
+ * by concurrent threads.
+ **/
 class ConcurrentQueue
 {
     private:

@@ -1,3 +1,4 @@
+// @author Benjamin Vogel
 #pragma once
 
 #include <vector>
@@ -6,6 +7,10 @@
 #include "Node.hpp"
 #include "Command.hpp"
 
+/**
+ * A data structure designed to hold all the necessary
+ * components for performing operations on a synchronous red-black tree
+ **/
 class FileOutput
 {
     private:

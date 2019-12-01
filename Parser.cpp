@@ -1,3 +1,4 @@
+// @author Benjamin Vogel
 #include <sstream>
 #include <iostream>
 #include <fstream>

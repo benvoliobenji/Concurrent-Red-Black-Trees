@@ -1,3 +1,4 @@
+// @author Benjamin Vogel
 #include "Node.hpp"
 #include "RBTree.hpp"
 #include "Parser.hpp"
