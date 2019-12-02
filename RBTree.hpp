@@ -10,13 +10,13 @@
 class RBTree
 {
     private:
-        Node *root;
+        std::shared_ptr<Node> root;
 
         /**
          * A helper function used to work in NULL checking, allows for added thread safety
          * @param readingNode: The node to start reading.
          **/
-        void startReadingNode(Node *readingNode)
+        void startReadingNode(std::shared_ptr<Node> readingNode)
         {
             if (readingNode != NULL)
             {
@@ -28,7 +28,7 @@ class RBTree
          * A helper function used to work in NULL checking, allows for added thread safety
          * @param readingNode: The node to stop reading.
          **/
-        void stopReadingNode(Node *readingNode)
+        void stopReadingNode(std::shared_ptr<Node> readingNode)
         {
             if (readingNode != NULL)
             {
@@ -40,7 +40,7 @@ class RBTree
          * A helper function used to work in NULL checking, allows for added thread safety
          * @param writingNode: The node to start writing.
          **/
-        void startWritingNode(Node *writingNode)
+        void startWritingNode(std::shared_ptr<Node> writingNode)
         {
             if (writingNode != NULL)
             {
@@ -52,7 +52,7 @@ class RBTree
          * A helper function used to work in NULL checking, allows for added thread safety
          * @param writingNode: The node to start writing.
          **/
-        void stopWritingNode(Node *writingNode)
+        void stopWritingNode(std::shared_ptr<Node> writingNode)
         {
             if (writingNode != NULL)
             {
@@ -65,7 +65,7 @@ class RBTree
          * @param printNode: The center node to print, the right child and the left child will also call printREC
          * @param level: The current level of the node in the red-black tree
          **/
-        void printREC(Node *printNode, int level);
+        void printREC(std::shared_ptr<Node> printNode, int level);
 
         /**
          * A helper function for insert(), this function checks if the inserted node causes any violations in the red-black
@@ -73,7 +73,7 @@ class RBTree
          * both online and in the code to highlight the solutions for those different cases.
          * @param insertionNode: The inserted node that may cause a violation.
          **/
-        void fixInsertionViolation(Node *insertionNode);
+        void fixInsertionViolation(std::shared_ptr<Node> insertionNode);
 
         /**
          * A helper function for delete(), this function checks if deleting a specific node caused any violations in the red-black tree
@@ -81,21 +81,21 @@ class RBTree
          * and there is documentation both online and in the code that address the solutions for those different cases.
          * @param deletionNode: The deleted node that may now cause a violation.
          **/
-        void fixDeletionViolation(Node *deletionNode);
+        void fixDeletionViolation(std::shared_ptr<Node> deletionNode);
 
         /**
          * Another helper function used in both fixInsertionViolation() and fixDeletionViolation(). This function rotates the tree left
          * based on the parameter node.
          * @param rotateNode: The node to rotate left around
          **/
-        void rotateLeft(Node *rotateNode);
+        void rotateLeft(std::shared_ptr<Node> rotateNode);
 
         /**
          * Another helper function used in both fixInsertionViolation() and fixDeletionViolation(). This function rotates the tree right
          * based on the parameter node.
          * @param rotateNode: The node to rotate right around
          **/
-        void rotateRight(Node *rotateNode);
+        void rotateRight(std::shared_ptr<Node> rotateNode);
 
         /**
          * A helper function to reduce code clutter. This moves the child pointers from the removedNode to the newNode
@@ -103,19 +103,19 @@ class RBTree
          * @param removedNode: The node that will be replaced
          * @param newNode: The new node that will be in the place of removedNode
          **/
-        void transplant(Node *removedNode, Node *newNode);
+        void transplant(std::shared_ptr<Node> removedNode, std::shared_ptr<Node> newNode);
 
         /**
          * A helper function that finds the minimum node closest to the parameter node's key
          * @param node: The node to find the minimum of
          * @returns A pointer to the minimum value node
          **/
-        Node *minimum(Node *node);
+        std::shared_ptr<Node> minimum(std::shared_ptr<Node> node);
 
     public:
         RBTree() { root = NULL; };
 
-        ~RBTree() { delete(root); }
+        // ~RBTree() { delete(root); }
 
         /**
          * Prints out the red-black tree in full. Empty children are represented by "f"
@@ -141,7 +141,7 @@ class RBTree
          * @param insertNode: The node pointer to insert
          * @returns The success of inserting the new node
          **/
-        bool insertNode(Node* insertNode);
+        bool insertNode(std::shared_ptr<Node> insertNode);
 
         /**
          * Deletes the provided node from the tree.

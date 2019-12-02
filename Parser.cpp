@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 #include "Parser.hpp"
 #include "trim.h"
@@ -101,7 +102,7 @@ void Parser::parseNodes(std::string nodeString)
 
             int value = std::stoi(token.substr(0, token.size() - 1));
 
-            Node *newNode = new Node(value, nodeColor);
+            std::shared_ptr<Node> newNode = std::make_shared<Node>(Node(value, nodeColor));
 
             output.addNode(newNode);
         }

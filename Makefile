@@ -11,7 +11,7 @@ OBJS = RBTreeRun.o RBTree.o Node.o Parser.o trim.o
 
 all: RBTreeRun.cpp
 		@$(ECHO) Compiling RBTree
-		g++ -std=c++14 -Wall -g RBTreeRun.cpp RBTree.cpp Node.cpp Parser.cpp trim.cpp -o rbtree
+		g++ -std=c++14 -Wall -g -pthread RBTreeRun.cpp RBTree.cpp Node.cpp Parser.cpp trim.cpp -o rbtree
 
 clean:
 		@$(ECHO) Removing all generated files

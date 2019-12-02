@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include "Node.hpp"
 #include "Command.hpp"
@@ -14,19 +15,19 @@
 class FileOutput
 {
     private:
-        std::vector<Node *> initialTree;
+        std::vector<std::shared_ptr<Node>> initialTree;
         std::vector<std::vector<Command>> threadCommands;
 
     public:
         FileOutput()
         {
-            initialTree = std::vector<Node *>();
+            initialTree = std::vector<std::shared_ptr<Node>>();
             threadCommands = std::vector<std::vector<Command>>();
         }
 
-        void addNode(Node *newNode) { initialTree.push_back(newNode); }
+        void addNode(std::shared_ptr<Node> newNode) { initialTree.push_back(newNode); }
 
-        std::vector<Node *> getNodes() { return initialTree; }
+        std::vector<std::shared_ptr<Node>> getNodes() { return initialTree; }
 
         void setNumThreads(int numThreads)
         {

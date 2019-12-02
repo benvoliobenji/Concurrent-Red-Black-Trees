@@ -15,10 +15,10 @@ class ThreadArgs
 {
     public:
         std::vector<Command> commands;
-        RBTree rbtree;
-        ConcurrentQueue q;
+        RBTree *rbtree;
+        ConcurrentQueue *q;
 
-        ThreadArgs(std::vector<Command> newCommands, RBTree &newTree, ConcurrentQueue &newQ)
+        ThreadArgs(std::vector<Command> newCommands, RBTree *newTree, ConcurrentQueue *newQ)
         {
             commands = newCommands;
             rbtree = newTree;
@@ -31,28 +31,28 @@ void* threadRun(void *args)
     ThreadArgs *arguments = static_cast<ThreadArgs*>(args);
 
     std::vector<Command> commands = arguments->commands;
-    RBTree rbtree = arguments->rbtree;
-    ConcurrentQueue q = arguments->q;
+    RBTree *rbtree = arguments->rbtree;
+    ConcurrentQueue *q = arguments->q;
 
     for (auto i = commands.begin(); i != commands.end(); ++i)
     {
         Command command = (*i);
         if (command.getCommand() == CommandType::SEARCH)
         {
-            bool success = rbtree.search(command.getNode());
+            bool success = rbtree->search(command.getNode());
             std::string successString = (success) ? "true" : "false";
             std::string message = "thread" + std::to_string(command.getThreadNum());
             message.append(", search(" + std::to_string(command.getNode()));
             message.append(")-> " + successString);
-            q.push(message);
+            q->push(message);
         }
         else if (command.getCommand() == CommandType::INSERT)
         {
-            rbtree.insert(command.getNode());
+            rbtree->insert(command.getNode());
         }
         else if (command.getCommand() == CommandType::DELETE)
         {
-            rbtree.deleteNode(command.getNode());
+            rbtree->deleteNode(command.getNode());
         }
         else
         {
@@ -60,6 +60,7 @@ void* threadRun(void *args)
         }
     }
 
+    delete(arguments);
     pthread_exit(NULL);
 }
 
@@ -72,7 +73,7 @@ int main(int argc, char *argv[])
     RBTree fileTree = RBTree();
     ConcurrentQueue q = ConcurrentQueue();
 
-    std::vector<Node *> nodes = output.getNodes();
+    std::vector<std::shared_ptr<Node>> nodes = output.getNodes();
 
     for (auto i = nodes.begin(); i != nodes.end(); ++i)
     {
@@ -89,12 +90,13 @@ int main(int argc, char *argv[])
     for (auto i = commands.begin(); i != commands.end(); ++i)
     {
         std::vector<Command> threadCommand = *i;
-        ThreadArgs *arguments = new ThreadArgs(threadCommand, fileTree, q);
+        ThreadArgs *arguments = new ThreadArgs(threadCommand, &fileTree, &q);
 
         int rc = pthread_create(&threads[threadNum], NULL, threadRun, (void *)arguments);
         if (rc)
         {
             std::cout << "ERROR; return code from pthread_create() is " << rc << std::endl;
+            delete(arguments);
             exit(-1);
         }
         threadNum++;

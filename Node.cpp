@@ -27,7 +27,7 @@
         waitingReaders = waitingWriters = 0;
     }
 
-    Node::Node(int initKey, Node *parentNode, Node *leftChild, Node *rightChild, Color color)
+    Node::Node(int initKey, std::shared_ptr<Node> parentNode, std::shared_ptr<Node> leftChild, std::shared_ptr<Node> rightChild, Color color)
     {
         key = initKey;
         parent = parentNode;

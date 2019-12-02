@@ -1,6 +1,7 @@
 // @author Benjamin Vogel
 #pragma once
 
+#include <memory>
 #include <pthread.h>
 
 /**
@@ -21,9 +22,9 @@ class Node
 {
     private:
         int key;
-        Node *parent;
-        Node *left;
-        Node *right;
+        std::shared_ptr<Node> parent;
+        std::shared_ptr<Node> left;
+        std::shared_ptr<Node> right;
         Color nodeColor;
         int currentlyReading = 0;
         bool currentlyWriting;
@@ -44,72 +45,71 @@ class Node
         void unlockNode() { pthread_mutex_unlock(&mutex); }
 
     public:
+        /**
+         * Initializer that only takes the key value. Color is initially set to red
+         * @param initKey: The key value of the node to construct
+         **/
+        Node (int initKey);
 
-    /**
-     * Initializer that only takes the key value. Color is initially set to black
-     * @param initKey: The key value of the node to construct
-     **/
-    Node (int initKey);
+        /**
+         * Initializer that takes both the key value and the initial color of the node
+         * @param initKey: The key value of the node to construct
+         * @param color: The intiiali color of the node. There is no garuntee the color will stay that way after insertion
+         **/
+        Node (int initKey, Color color);
 
-    /**
-     * Initializer that takes both the key value and the initial color of the node
-     * @param initKey: The key value of the node to construct
-     * @param color: The intiiali color of the node. There is no garuntee the color will stay that way after insertion
-     **/
-    Node (int initKey, Color color);
+        /**
+         * Iniitializer that takes all parameters. Never used but useful in the case that it might
+         * @param initKey: The key value of the node to construct
+         * @param parentNode: The constructed node's new parent
+         * @param leftChild: The left child of the new node
+         * @param rightChild: The right child of the new node
+         * @param color: The initial color of the new node.
+         **/
+        Node(int initKey, std::shared_ptr<Node> parentNode, std::shared_ptr<Node> leftChild, std::shared_ptr<Node> rightChild, Color color);
 
-    /**
-     * Iniitializer that takes all parameters. Never used but useful in the case that it might
-     * @param initKey: The key value of the node to construct
-     * @param parentNode: The constructed node's new parent
-     * @param leftChild: The left child of the new node
-     * @param rightChild: The right child of the new node
-     * @param color: The initial color of the new node.
-     **/
-    Node(int initKey, Node *parentNode, Node *leftChild, Node *rightChild, Color color);
+        ~Node();
 
-    ~Node();
+        /**
+         * The function used for threads that are attempting to read the node only.
+         * Threads will be blocked on this function if a writer is currently writing or
+         * if there is a waiting writer.
+         * If it is unblocked and can read, it will signal other readers that it is okay to read.
+         **/
+        void startReading();
+        /**
+         * The function used for threads that are done reading the node.
+         * If there are no other readers currently reading, then it signals any waiting writer nodes to start writing.
+         **/
+        void stopReading();
 
-    /**
-     * The function used for threads that are attempting to read the node only.
-     * Threads will be blocked on this function if a writer is currently writing or
-     * if there is a waiting writer.
-     * If it is unblocked and can read, it will signal other readers that it is okay to read.
-     **/
-    void startReading();
-    /**
-     * The function used for threads that are done reading the node.
-     * If there are no other readers currently reading, then it signals any waiting writer nodes to start writing.
-     **/
-    void stopReading();
+        /**
+         * The function used for threads that are attempting to modify the node (or write).
+         * Threads will be blocked on this function if there is a writer currently writing or there are readers currently reading.
+         **/
+        void startWriting();
+        /**
+         * The function used for threads that are done writing to the node.
+         * If there are readers waiting, then it signals the readers to start reading, else it signals any waiting writers.
+         **/
+        void stopWriting();
 
-    /**
-     * The function used for threads that are attempting to modify the node (or write).
-     * Threads will be blocked on this function if there is a writer currently writing or there are readers currently reading.
-     **/
-    void startWriting();
-    /**
-     * The function used for threads that are done writing to the node.
-     * If there are readers waiting, then it signals the readers to start reading, else it signals any waiting writers.
-     **/
-    void stopWriting();
+        int getKey() { return key; }
+        void setKey(int newKey) { key = newKey; }
 
-    int getKey() { return key; }
-    void setKey(int newKey) { key = newKey; }
+        std::shared_ptr<Node> getParent() { return parent; }
+        void setParent(std::shared_ptr<Node> newParent) { parent = newParent; }
 
-    Node *getParent() { return parent; }
-    void setParent(Node *newParent) { parent = newParent; }
-
-    Node *getLeft() { return left; }
-    void setLeft(Node *newLeft) { left = newLeft; }
-
-
-    Node *getRight() { return right; }
-    void setRight(Node *newRight) { right = newRight; }
+        std::shared_ptr<Node> getLeft() { return left; }
+        void setLeft(std::shared_ptr<Node> newLeft) { left = newLeft; }
 
 
-    Color getNodeColor() { return nodeColor; }
-    void setNodeColor(Color newNodeColor) { nodeColor = newNodeColor; }
+        std::shared_ptr<Node> getRight() { return right; }
+        void setRight(std::shared_ptr<Node> newRight) { right = newRight; }
 
-    inline bool operator==(const Node &compareNode) {return key == compareNode.key;}
+
+        Color getNodeColor() { return nodeColor; }
+        void setNodeColor(Color newNodeColor) { nodeColor = newNodeColor; }
+
+        inline bool operator==(const Node &compareNode) {return key == compareNode.key;}
 };
