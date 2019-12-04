@@ -8,5 +8,5 @@
 class RBTreeRun
 {
     public:
-        void runTree(FileOutput output);
-}
+        static void runTree(FileOutput output);
+};

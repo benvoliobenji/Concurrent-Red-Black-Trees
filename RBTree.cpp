@@ -12,12 +12,12 @@ void RBTree::printREC(std::shared_ptr<Node> printNode, int level)
 {
     if (printNode != NULL)
     {
-        startReadingNode(printNode);
+        // startReadingNode(printNode);
         std::string color = (printNode->getNodeColor() == Color::BLACK) ? "b" : "r";
         std::cout << printNode->getKey() << color << " ";
         printREC(printNode->getLeft(), level + 1);
         printREC(printNode->getRight(), level + 1);
-        stopReadingNode(printNode);
+        // stopReadingNode(printNode);
     }
     else
     {
@@ -113,10 +113,17 @@ bool RBTree::insertNode(std::shared_ptr<Node> newNode)
             {
                 childNode = parentNode->getRight();
             }
-            else if (newNode->getKey() <= parentNode->getKey())
+            else if (newNode->getKey() < parentNode->getKey())
             {
                 childNode = parentNode->getLeft();
             }
+            else
+            {
+                std::cout << "This node is already inserted" << std::endl;
+                stopWritingNode(parentNode);
+                return true;
+            }
+            
 
             // If the child is null, then we've hit a spot to insert
             if (childNode == NULL)
@@ -550,18 +557,20 @@ void RBTree::fixInsertionViolation(std::shared_ptr<Node> insertionNode)
     {
         std::cout << "There is still a violation" << std::endl;
 
-        if (parent != NULL && parent != violationNode)
+        if (parent != violationNode)
         {
             stopWritingNode(parent);
         }
-        if (grandParent != NULL && grandParent != violationNode)
+        if (grandParent != violationNode)
         {
             stopWritingNode(grandParent);
         }
 
+        std::cout << "Starting writing to parent" << std::endl;
         parent = violationNode->getParent();
         startWritingNode(parent);
 
+        std::cout << "Starting writing to grandparent" << std::endl;
         grandParent = parent->getParent();
         startWritingNode(grandParent);
 

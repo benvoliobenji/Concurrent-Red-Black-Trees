@@ -23,19 +23,16 @@ void Parser::parse(const char *fileToParse)
         return;
     }
 
-    std::vector<std::string> nodes;
-    std::vector<std::string> threads;
-    std::vector<std::string> commands;
+    std::vector<std::string> threads = std::vector<std::string>();
 
     bool nodesRead = false;
     bool threadsRead = false;
     bool commandsRead = false;
 
-    RBTreeRun tree = RBTreeRun();
+    int testTracker = 1;
 
     while (std::getline(file, line))
     {
-        // TODO: Check for lines between different tests
         std::cout << "Got Line: " << line << std::endl;
         line = trim(line);
 
@@ -68,6 +65,11 @@ void Parser::parse(const char *fileToParse)
                     parseNodes(line);
                     nodesRead = true;
                 }
+                else
+                {
+                    std::cout << "Test: " << std::to_string(testTracker) << std::endl;
+                }
+                
             }
             else
             {
@@ -100,11 +102,13 @@ void Parser::parse(const char *fileToParse)
         if (nodesRead && threadsRead && commandsRead)
         {
             // This is a new tree to run, so run it
-            tree.runTree(output);
+            RBTreeRun::runTree(output);
             output = FileOutput();
             nodesRead = false;
             threadsRead = false;
+            threads = std::vector<std::string>();
             commandsRead = false;
+            testTracker++;
         }
     }
     return;
@@ -116,25 +120,34 @@ void Parser::parseNodes(std::string nodeString)
 
     std::string token;
 
+    // Most often, nodes are deliminated by commas (as is in the design doc)
     while (std::getline(ss, token, ','))
     {
-        // We don't terribly care if this is a null node, the balancing will do it for us
-        if (token.compare("f") != 0)
+        // Check for unneeded spaces
+        std::stringstream tokenSS(token);
+        std::string spaceToken;
+        while (std::getline(tokenSS, spaceToken, ' '))
         {
-            token = trim(token);
-
-            // Check to make sure it's a valid node
-            if (isalpha(token[token.size() - 1]))
+            // We don't terribly care if this is a null node, the balancing will do it for us
+            if (spaceToken.compare("f") != 0)
             {
-                char color = token[token.size() - 1];
+                spaceToken = trim(spaceToken);
 
-                Color nodeColor = (color == 'r') ? Color::RED : Color::BLACK;
+                // Check to make sure it's a valid node
+                if (isalpha(spaceToken[spaceToken.size() - 1]))
+                {
+                    char color = spaceToken[spaceToken.size() - 1];
 
-                int value = std::stoi(token.substr(0, token.size() - 1));
+                    Color nodeColor = (color == 'r') ? Color::RED : Color::BLACK;
 
-                std::shared_ptr<Node> newNode = std::make_shared<Node>(Node(value, nodeColor));
+                    std::cout << "Node: " << spaceToken << std::endl;
 
-                output.addNode(newNode);
+                    int value = std::stoi(spaceToken.substr(0, spaceToken.size() - 1));
+
+                    std::shared_ptr<Node> newNode = std::make_shared<Node>(Node(value, nodeColor));
+
+                    output.addNode(newNode);
+                }
             }
         }
     }
