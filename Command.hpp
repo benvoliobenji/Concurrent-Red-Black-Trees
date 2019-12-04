@@ -1,7 +1,7 @@
-// @author Benjamin Vogel
+/**
+ * @author Benjamin Vogel
+ **/
 #pragma once
-
-#include <vector>
 
 /**
  * An enum to provide better representation of the different commands that will be run

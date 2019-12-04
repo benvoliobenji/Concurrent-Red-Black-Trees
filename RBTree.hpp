@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Node.hpp"
-#include <iostream>
 
 /**
  * The class that contains the functions needed to operate and display critical functions

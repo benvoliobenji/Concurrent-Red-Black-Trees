@@ -3,13 +3,11 @@
 
 #include <pthread.h>
 #include <queue>
-#include <string>
-
-#include <iostream>
 
 /**
- * An implementation of a thread-safe queue needed for holding the results of different search() operations
- * by concurrent threads.
+ * An implementation of a thread-safe queue needed for holding either Command objects
+ * for the threads to process or the results of search() queries.
+ * Made generic for that exact reason.
  **/
 template <class T>
 class ConcurrentQueue
