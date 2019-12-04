@@ -1,7 +1,10 @@
-// @author Benjamin Vogel
+/**
+ * @author Benjamin Vogel
+ **/
 #pragma once
 
 #include "Node.hpp"
+#include <iostream>
 
 /**
  * The class that contains the functions needed to operate and display critical functions
@@ -20,6 +23,7 @@ class RBTree
         {
             if (readingNode != NULL)
             {
+                // std::cout << "Started reading for node: " << std::to_string(readingNode->getKey()) << std::endl;   
                 readingNode->startReading();
             }
         }
@@ -32,6 +36,7 @@ class RBTree
         {
             if (readingNode != NULL)
             {
+                // std::cout << "Stopped reading for node: " << std::to_string(readingNode->getKey()) << std::endl;
                 readingNode->stopReading();
             }
         }
@@ -44,6 +49,7 @@ class RBTree
         {
             if (writingNode != NULL)
             {
+                // std::cout << "Started writing for node: " << std::to_string(writingNode->getKey()) << std::endl;   
                 writingNode->startWriting();
             }
         }
@@ -56,6 +62,7 @@ class RBTree
         {
             if (writingNode != NULL)
             {
+                // std::cout << "Stopped writing for node: " << std::to_string(writingNode->getKey()) << std::endl;
                 writingNode->stopWriting();
             }
         }

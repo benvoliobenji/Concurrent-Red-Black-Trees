@@ -1,4 +1,6 @@
-// @author Benjamin Vogel
+/**
+ * @author Benjamin Vogel
+ **/
 #include "Node.hpp"
 
     Node::Node (int initKey)

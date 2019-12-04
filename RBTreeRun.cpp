@@ -78,7 +78,7 @@ void RBTreeRun::runTree(FileOutput output)
 
     for (auto i = nodes.begin(); i != nodes.end(); ++i)
     {
-        std::cout << "Node: " << (*i)->getKey() << std::endl;
+        // std::cout << "Node: " << (*i)->getKey() << std::endl;
         fileTree.insertNode(*i);
     }
 

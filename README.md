@@ -3,7 +3,7 @@
 Programming Project 2 for COMS 352, designed to utilize pthread and semaphores.
 
 ## Quick Implementation Note
-This implementation of Programming Project 2 adheres to the original project document, where each node is individually locked and unlocked.
+This implementation of Programming Project 2 adheres to the advanced version of the new project, where each node is individually locked and unlocked.
 
 ## Quick Documentation Note
 The documentation for each of the methods (ie a description of the methods, the parameters, and the return types) are in the __HEADER__ files. This is to reduce the number of lines in the .cpp files and create a better sense of readability since a user should be able to look at the header files and understand what the .cpp file is trying to accomplish.
