@@ -1,4 +1,6 @@
-// @author Benjamin Vogel
+/**
+ * @author Benjamin Vogel
+ **/
 #include <bits/stdc++.h>
 #include <sstream>
 #include <iostream>
@@ -7,8 +9,9 @@
 
 #include "Parser.hpp"
 #include "trim.h"
+#include "RBTreeRun.hpp"
 
-FileOutput Parser::parse(const char *fileToParse)
+void Parser::parse(const char *fileToParse)
 {
     std::fstream file;
     file.open(fileToParse);
@@ -17,7 +20,7 @@ FileOutput Parser::parse(const char *fileToParse)
     if (!file.is_open())
     {
         perror("Error opening file");
-        return output;
+        return;
     }
 
     std::vector<std::string> nodes;
@@ -28,8 +31,11 @@ FileOutput Parser::parse(const char *fileToParse)
     bool threadsRead = false;
     bool commandsRead = false;
 
+    RBTreeRun tree = RBTreeRun();
+
     while (std::getline(file, line))
     {
+        // TODO: Check for lines between different tests
         std::cout << "Got Line: " << line << std::endl;
         line = trim(line);
 
@@ -49,10 +55,19 @@ FileOutput Parser::parse(const char *fileToParse)
         {
             if (!nodesRead)
             {
-                std::cout << "Parsing Nodes" << std::endl;
-                // Since all the nodes are on one line with no return, we can just parse this line and it'll be correct
-                parseNodes(line);
-                nodesRead = true;
+                std::string testLine = line.substr(0, 4);
+                std::transform(testLine.begin(), testLine.end(), testLine.begin(), ::tolower);
+
+                std::cout << testLine << std::endl;
+
+                // Check to make sure that the first line we read in is NOT the test case header line
+                if (testLine.compare("test") != 0)
+                {
+                    std::cout << "Parsing Nodes" << std::endl;
+                    // Since all the nodes are on one line with no return, we can just parse this line and it'll be correct
+                    parseNodes(line);
+                    nodesRead = true;
+                }
             }
             else
             {
@@ -81,8 +96,18 @@ FileOutput Parser::parse(const char *fileToParse)
                 } 
             }
         }
+
+        if (nodesRead && threadsRead && commandsRead)
+        {
+            // This is a new tree to run, so run it
+            tree.runTree(output);
+            output = FileOutput();
+            nodesRead = false;
+            threadsRead = false;
+            commandsRead = false;
+        }
     }
-    return output;
+    return;
 }
 
 void Parser::parseNodes(std::string nodeString)

@@ -41,5 +41,5 @@ class Parser
          * @param fileToParse: The name of the file to open and read from
          * @returns An object containing all the necessary information for running a synchronous red-black tree
          **/
-        FileOutput parse(const char *fileToParse);
+        void parse(const char *fileToParse);
 };

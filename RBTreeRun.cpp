@@ -1,7 +1,9 @@
-// @author Benjamin Vogel
+/**
+ * @author Benjamin Vogel
+ **/
+#include "RBTreeRun.hpp"
 #include "Node.hpp"
 #include "RBTree.hpp"
-#include "Parser.hpp"
 #include "FileOutput.hpp"
 #include "ConcurrentQueue.hpp"
 
@@ -64,7 +66,7 @@ void* threadRun(void *args)
     pthread_exit(NULL);
 }
 
-int treeRun(FileOutput output)
+void RBTreeRun::runTree(FileOutput output)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
