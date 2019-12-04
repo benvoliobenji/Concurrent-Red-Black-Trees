@@ -45,6 +45,7 @@ void* threadRun(void *args)
             std::string successString = (success) ? "true" : "false";
             std::string message = "search(" + std::to_string(command.getNode());
             message.append(")-> " + successString);
+            message.append(", performed by thread: " + std::to_string(pthread_self()));
             q->push(message);
         }
         else if (command.getCommand() == CommandType::INSERT)
@@ -69,8 +70,6 @@ void RBTreeRun::runTree(FileOutput output)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
-    // Parser parser = Parser();
-    // FileOutput output = parser.parse(argv[1]);
     RBTree fileTree = RBTree();
     ConcurrentQueue<std::string> resultsQueue = ConcurrentQueue<std::string>();
 
@@ -78,7 +77,6 @@ void RBTreeRun::runTree(FileOutput output)
 
     for (auto i = nodes.begin(); i != nodes.end(); ++i)
     {
-        // std::cout << "Node: " << (*i)->getKey() << std::endl;
         fileTree.insertNode(*i);
     }
 

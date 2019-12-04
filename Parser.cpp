@@ -96,7 +96,7 @@ void Parser::parse(const char *fileToParse)
                     }
                     else
                     {
-                        // std::cout << "More data in this file: " << line << std::endl;
+                        std::cout << "More data in this file: " << line << std::endl;
                     }  
                 } 
             }
