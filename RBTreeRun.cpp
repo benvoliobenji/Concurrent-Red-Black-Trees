@@ -64,12 +64,12 @@ void* threadRun(void *args)
     pthread_exit(NULL);
 }
 
-int main(int argc, char *argv[])
+int treeRun(FileOutput output)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
-    Parser parser = Parser();
-    FileOutput output = parser.parse(argv[1]);
+    // Parser parser = Parser();
+    // FileOutput output = parser.parse(argv[1]);
     RBTree fileTree = RBTree();
     ConcurrentQueue q = ConcurrentQueue();
 

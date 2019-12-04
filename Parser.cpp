@@ -1,4 +1,5 @@
 // @author Benjamin Vogel
+#include <bits/stdc++.h>
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -96,15 +97,20 @@ void Parser::parseNodes(std::string nodeString)
         if (token.compare("f") != 0)
         {
             token = trim(token);
-            char color = token[token.size() - 1];
 
-            Color nodeColor = (color == 'r') ? Color::RED : Color::BLACK;
+            // Check to make sure it's a valid node
+            if (isalpha(token[token.size() - 1]))
+            {
+                char color = token[token.size() - 1];
 
-            int value = std::stoi(token.substr(0, token.size() - 1));
+                Color nodeColor = (color == 'r') ? Color::RED : Color::BLACK;
 
-            std::shared_ptr<Node> newNode = std::make_shared<Node>(Node(value, nodeColor));
+                int value = std::stoi(token.substr(0, token.size() - 1));
 
-            output.addNode(newNode);
+                std::shared_ptr<Node> newNode = std::make_shared<Node>(Node(value, nodeColor));
+
+                output.addNode(newNode);
+            }
         }
     }
 }
@@ -152,6 +158,7 @@ void Parser::parseCommands(std::string commandsToParse)
                 else
                 {
                     std::string command = commandToken.substr(0, 6);
+                    std::transform(command.begin(), command.end(), command.begin(), ::tolower);
 
                     if (command.compare("search") == 0)
                     {
