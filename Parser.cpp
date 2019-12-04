@@ -30,26 +30,18 @@ void Parser::parse(const char *fileToParse)
 
     while (std::getline(file, line))
     {
-        // std::cout << "Got Line: " << line << std::endl;
         line = trim(line);
 
-        if (line.empty())
-        {
-            // std::cout << "Empty Line" << std::endl;
-        }
-        else
+        if (!line.empty())
         {
             if (!nodesRead)
             {
                 std::string testLine = line.substr(0, 4);
                 std::transform(testLine.begin(), testLine.end(), testLine.begin(), ::tolower);
 
-                // std::cout << testLine << std::endl;
-
                 // Check to make sure that the first line we read in is NOT the test case header line
                 if (testLine.compare("test") != 0)
                 {
-                    // std::cout << "Parsing Nodes" << std::endl;
                     // Since all the nodes are on one line with no return, we can just parse this line and it'll be correct
                     parseNodes(line);
                     nodesRead = true;
@@ -73,23 +65,19 @@ void Parser::parse(const char *fileToParse)
                     if (threadType.compare("search") == 0)
                     {
                         std::string numThreads = token.substr(15, token.length() - 15);
-                        // std::cout << "Number of search threads: " << numThreads << std::endl;
                         output.setNumReadThreads(std::stoi(numThreads));
                     }
                     else if (threadType.compare("modify") == 0)
                     {
                         std::string numThreads = token.substr(15, token.length() - 15);
-                        // std::cout << "Number of modify threads: " << numThreads << std::endl;
                         output.setNumWriteThreads(std::stoi(numThreads));
                         threadsRead = true;
                     }
-                    // std::cout << "Added thread: " << token << std::endl;
                 }
                 else
                 {
                     if (!commandsRead)
                     {
-                        // std::cout << "Parsing Commands" << std::endl;
                         // Same as parseNodes, all the commands are on one line, so we don't have to worry about it
                         parseCommands(line);
                         commandsRead = true;
@@ -143,8 +131,6 @@ void Parser::parseNodes(std::string nodeString)
 
                     Color nodeColor = (color == 'r') ? Color::RED : Color::BLACK;
 
-                    // std::cout << "Node: " << spaceToken << std::endl;
-
                     int value = std::stoi(spaceToken.substr(0, spaceToken.size() - 1));
 
                     std::shared_ptr<Node> newNode = std::make_shared<Node>(Node(value, nodeColor));
@@ -166,15 +152,12 @@ void Parser::parseCommands(std::string commandsToParse)
     {
         lineToken = trim(lineToken);
 
-        // std::cout << "Command Line: " << lineToken << std::endl;
-
         if (!lineToken.empty())
         {
             Command newCommand = Command();
 
             std::string nodeAffected = lineToken.substr(6, lineToken.size() - 6);
 
-            // std::cout << "Node Affected: " << nodeAffected << std::endl;
             int node = std::stoi(nodeAffected.substr(1, nodeAffected.size() - 2));
             newCommand.setNode(node);
 
@@ -199,9 +182,8 @@ void Parser::parseCommands(std::string commandsToParse)
             }
             else
             {
-                // std::cout << "Error, not a valid command: " << command << std::endl;
+                std::cout << "Error, not a valid command: " << command << std::endl;
             }
-            // std::cout << "Added Command: " << newCommand.getThreadNum() << " " << newCommand.getNode() << std::endl;
         }
     }
 }
