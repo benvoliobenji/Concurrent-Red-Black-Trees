@@ -16,11 +16,11 @@
 class ThreadArgs
 {
     public:
-        std::vector<Command> commands;
+        ConcurrentQueue<Command> *commands;
         RBTree *rbtree;
-        ConcurrentQueue *q;
+        ConcurrentQueue<std::string> *q;
 
-        ThreadArgs(std::vector<Command> newCommands, RBTree *newTree, ConcurrentQueue *newQ)
+        ThreadArgs(ConcurrentQueue<Command> *newCommands, RBTree *newTree, ConcurrentQueue<std::string> *newQ)
         {
             commands = newCommands;
             rbtree = newTree;
@@ -32,19 +32,18 @@ void* threadRun(void *args)
 {
     ThreadArgs *arguments = static_cast<ThreadArgs*>(args);
 
-    std::vector<Command> commands = arguments->commands;
+    ConcurrentQueue<Command> *commands = arguments->commands;
     RBTree *rbtree = arguments->rbtree;
-    ConcurrentQueue *q = arguments->q;
+    ConcurrentQueue<std::string> *q = arguments->q;
 
-    for (auto i = commands.begin(); i != commands.end(); ++i)
+    while (commands->notempty())
     {
-        Command command = (*i);
+        Command command = commands->pop();
         if (command.getCommand() == CommandType::SEARCH)
         {
             bool success = rbtree->search(command.getNode());
             std::string successString = (success) ? "true" : "false";
-            std::string message = "thread" + std::to_string(command.getThreadNum());
-            message.append(", search(" + std::to_string(command.getNode()));
+            std::string message = "search(" + std::to_string(command.getNode());
             message.append(")-> " + successString);
             q->push(message);
         }
@@ -73,7 +72,7 @@ void RBTreeRun::runTree(FileOutput output)
     // Parser parser = Parser();
     // FileOutput output = parser.parse(argv[1]);
     RBTree fileTree = RBTree();
-    ConcurrentQueue q = ConcurrentQueue();
+    ConcurrentQueue<std::string> resultsQueue = ConcurrentQueue<std::string>();
 
     std::vector<std::shared_ptr<Node>> nodes = output.getNodes();
 
@@ -83,16 +82,16 @@ void RBTreeRun::runTree(FileOutput output)
         fileTree.insertNode(*i);
     }
 
-    std::vector<std::vector<Command>> commands = output.getCommands();
+    ConcurrentQueue<Command> searchCommands = output.getSearchCommands();
+    ConcurrentQueue<Command> modifyCommands = output.getModifyCommands();
 
-    pthread_t threads[commands.size()];
-    std::cout << "Size of the commands: " << commands.size() << std::endl;
+    int numThreads = output.getNumReadThreads() + output.getnumWriteThreads();
+    pthread_t threads[numThreads];
     
     int threadNum = 0;
-    for (auto i = commands.begin(); i != commands.end(); ++i)
+    for (int i = 0; i < output.getNumReadThreads(); ++i)
     {
-        std::vector<Command> threadCommand = *i;
-        ThreadArgs *arguments = new ThreadArgs(threadCommand, &fileTree, &q);
+        ThreadArgs *arguments = new ThreadArgs(&searchCommands, &fileTree, &resultsQueue);
 
         int rc = pthread_create(&threads[threadNum], NULL, threadRun, (void *)arguments);
         if (rc)
@@ -104,7 +103,21 @@ void RBTreeRun::runTree(FileOutput output)
         threadNum++;
     }
 
-    for(size_t t = 0; t < commands.size(); t++)
+    for (int i = 0; i < output.getnumWriteThreads(); ++i)
+    {
+        ThreadArgs *arguments = new ThreadArgs(&modifyCommands, &fileTree, &resultsQueue);
+
+        int rc = pthread_create(&threads[threadNum], NULL, threadRun, (void *)arguments);
+        if (rc)
+        {
+            std::cout << "ERROR; return code from pthread_create() is " << rc << std::endl;
+            delete(arguments);
+            exit(-1);
+        }
+        threadNum++;
+    }
+
+    for(int t = 0; t < numThreads; t++)
     {
         pthread_join(threads[t], NULL);
     }
@@ -113,9 +126,9 @@ void RBTreeRun::runTree(FileOutput output)
 
     std::cout << "Time Elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(done - start).count() << std::endl;
 
-    while (q.notempty())
+    while (resultsQueue.notempty())
     {
-        std::string message = q.pop();
+        std::string message = resultsQueue.pop();
         std::cout << message << std::endl;
     }
 

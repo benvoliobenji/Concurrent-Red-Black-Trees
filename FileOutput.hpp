@@ -7,6 +7,7 @@
 
 #include "Node.hpp"
 #include "Command.hpp"
+#include "ConcurrentQueue.hpp"
 
 /**
  * A data structure designed to hold all the necessary
@@ -16,35 +17,41 @@ class FileOutput
 {
     private:
         std::vector<std::shared_ptr<Node>> initialTree;
-        std::vector<std::vector<Command>> threadCommands;
+        int numReadThreads = 0;
+        int numWriteThreads = 0;
+        ConcurrentQueue<Command> readQueue;
+        ConcurrentQueue<Command> modifyQueue;
 
     public:
         FileOutput()
         {
             initialTree = std::vector<std::shared_ptr<Node>>();
-            threadCommands = std::vector<std::vector<Command>>();
+            readQueue = ConcurrentQueue<Command>();
+            modifyQueue = ConcurrentQueue<Command>();
+            numReadThreads = 0;
+            numWriteThreads = 0;
         }
 
         void addNode(std::shared_ptr<Node> newNode) { initialTree.push_back(newNode); }
 
         std::vector<std::shared_ptr<Node>> getNodes() { return initialTree; }
 
-        void setNumThreads(int numThreads)
-        {
-            for (int i = 0; i < numThreads; i++)
-            {
-                std::vector<Command> commandThread = std::vector<Command>();
-                threadCommands.push_back(commandThread);
-            }
-        }
-        
-        void addCommand(Command newCommand)
-        {
-            int thread = newCommand.getThreadNum();
+        void setNumReadThreads(int numThreads) { numReadThreads = numThreads; }
+        int getNumReadThreads() { return numReadThreads; }
 
-            threadCommands[thread - 1].push_back(newCommand);
+        void setNumWriteThreads(int numThreads) { numWriteThreads = numThreads; }
+        int getnumWriteThreads() {return numWriteThreads; }
+        
+        void addSearchCommand(Command newCommand)
+        {
+            readQueue.push(newCommand);
         }
-        
-        std::vector<std::vector<Command>> getCommands() { return threadCommands; }
-        
+
+        void addModifyCommand(Command newCommand)
+        {
+            modifyQueue.push(newCommand);
+        }
+
+        ConcurrentQueue<Command> getSearchCommands() { return readQueue; }
+        ConcurrentQueue<Command> getModifyCommands() { return modifyQueue; }    
 };

@@ -22,9 +22,6 @@ void Parser::parse(const char *fileToParse)
         perror("Error opening file");
         return;
     }
-
-    std::vector<std::string> threads = std::vector<std::string>();
-
     bool nodesRead = false;
     bool threadsRead = false;
     bool commandsRead = false;
@@ -39,14 +36,6 @@ void Parser::parse(const char *fileToParse)
         if (line.empty())
         {
             std::cout << "Empty Line" << std::endl;
-
-            threadsRead = (nodesRead && (threads.size() > 0)) ? true : false;
-
-            if (threadsRead)
-            {
-                std::cout << "Parsing threads" << std::endl;
-                parseThreads(threads);
-            }
         }
         else
         {
@@ -78,8 +67,22 @@ void Parser::parse(const char *fileToParse)
                     std::string token;
 
                     token = trim(line);
-                    threads.push_back(token);
+                    std::string threadType = token.substr(0, 6);
+                    std::transform(threadType.begin(), threadType.end(), threadType.begin(), ::tolower);
 
+                    if (threadType.compare("search") == 0)
+                    {
+                        std::string numThreads = token.substr(15, token.length() - 15);
+                        std::cout << "Number of search threads: " << numThreads << std::endl;
+                        output.setNumReadThreads(std::stoi(numThreads));
+                    }
+                    else if (threadType.compare("modify") == 0)
+                    {
+                        std::string numThreads = token.substr(15, token.length() - 15);
+                        std::cout << "Number of modify threads: " << numThreads << std::endl;
+                        output.setNumWriteThreads(std::stoi(numThreads));
+                        threadsRead = true;
+                    }
                     std::cout << "Added thread: " << token << std::endl;
                 }
                 else
@@ -106,7 +109,6 @@ void Parser::parse(const char *fileToParse)
             output = FileOutput();
             nodesRead = false;
             threadsRead = false;
-            threads = std::vector<std::string>();
             commandsRead = false;
             testTracker++;
         }
@@ -153,11 +155,6 @@ void Parser::parseNodes(std::string nodeString)
     }
 }
 
-void Parser::parseThreads(std::vector<std::string> threadsToParse)
-{
-    output.setNumThreads(threadsToParse.size());
-}
-
 void Parser::parseCommands(std::string commandsToParse)
 {
     std::stringstream ss(commandsToParse);
@@ -172,59 +169,38 @@ void Parser::parseCommands(std::string commandsToParse)
 
         if (!lineToken.empty())
         {
-            std::stringstream ss2(lineToken);
-
-            std::string commandToken;
-
             Command newCommand = Command();
-            bool threadRead = false;
 
-            while(std::getline(ss2, commandToken, ','))
+            std::string nodeAffected = lineToken.substr(6, lineToken.size() - 6);
+
+            std::cout << "Node Affected: " << nodeAffected << std::endl;
+            int node = std::stoi(nodeAffected.substr(1, nodeAffected.size() - 2));
+            newCommand.setNode(node);
+
+
+            std::string command = lineToken.substr(0, 6);
+            std::transform(command.begin(), command.end(), command.begin(), ::tolower);
+
+            if (command.compare("search") == 0)
             {
-                commandToken = trim(commandToken);
-                std::cout << "Sub-Command Line: " << commandToken << std::endl;
-
-                if (!threadRead)
-                {
-                    std::string thread = commandToken.substr(6, commandToken.size() - 6);
-
-                    int threadNum = std::stoi(thread);
-                    std::cout << "Setting thread num to: " << thread << std::endl;
-                    newCommand.setThreadNum(threadNum);
-                    threadRead = true;
-                }
-                else
-                {
-                    std::string command = commandToken.substr(0, 6);
-                    std::transform(command.begin(), command.end(), command.begin(), ::tolower);
-
-                    if (command.compare("search") == 0)
-                    {
-                        newCommand.setCommand(CommandType::SEARCH);
-                    }
-                    else if (command.compare("insert") == 0)
-                    {
-                        newCommand.setCommand(CommandType::INSERT);
-                    }
-                    else if (command.compare("delete") == 0)
-                    {
-                        newCommand.setCommand(CommandType::DELETE);
-                    }
-                    else
-                    {
-                        std::cout << "Error, not a valid command: " << command << std::endl;
-                    }
-
-                    std::string nodeAffected = commandToken.substr(6, commandToken.size() - 6);
-
-                    std::cout << "Node Affected: " << nodeAffected << std::endl;
-                    int node = std::stoi(nodeAffected.substr(1, nodeAffected.size() - 2));
-                    newCommand.setNode(node);
-                }
+                newCommand.setCommand(CommandType::SEARCH);
+                output.addSearchCommand(newCommand);
             }
-
+            else if (command.compare("insert") == 0)
+            {
+                newCommand.setCommand(CommandType::INSERT);
+                output.addModifyCommand(newCommand);
+            }
+            else if (command.compare("delete") == 0)
+            {
+                newCommand.setCommand(CommandType::DELETE);
+                output.addModifyCommand(newCommand);
+            }
+            else
+            {
+                std::cout << "Error, not a valid command: " << command << std::endl;
+            }
             std::cout << "Added Command: " << newCommand.getThreadNum() << " " << newCommand.getNode() << std::endl;
-            output.addCommand(newCommand);
         }
     }
 }

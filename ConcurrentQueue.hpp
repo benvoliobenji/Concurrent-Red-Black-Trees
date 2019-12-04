@@ -11,16 +11,17 @@
  * An implementation of a thread-safe queue needed for holding the results of different search() operations
  * by concurrent threads.
  **/
+template <class T>
 class ConcurrentQueue
 {
     private:
-        std::queue<std::string> q;
+        std::queue<T> q;
         pthread_mutex_t mutex;
 
     public:
         ConcurrentQueue()
         {
-            q = std::queue<std::string>();
+            q = std::queue<T>();
             pthread_mutex_init(&mutex, NULL);
         }
 
@@ -29,17 +30,17 @@ class ConcurrentQueue
             pthread_mutex_destroy(&mutex);
         }
 
-        void push(std::string message)
+        void push(T message)
         {
             pthread_mutex_lock(&mutex);
             q.push(message);
             pthread_mutex_unlock(&mutex);
         }
 
-        std::string pop()
+        T pop()
         {
             pthread_mutex_lock(&mutex);
-            std::string message = q.front();
+            T message = q.front();
             q.pop();
             pthread_mutex_unlock(&mutex);
             return message;

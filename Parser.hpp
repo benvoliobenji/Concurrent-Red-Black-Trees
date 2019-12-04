@@ -19,12 +19,6 @@ class Parser
         void parseNodes(std::string nodeString);
 
         /**
-         * Parses the threads that will operate on the red-black tree
-         * @param threadsToParse: A vector of strings denoting the several lines in the file that represent the threads to parse
-         **/
-        void parseThreads(std::vector<std::string> threadsToParse);
-
-        /**
          * Parses the commands the threads will operate on the tree
          * @param commandsToParse: The line in the file that contains the commands to operate on a red-black tree
          **/
