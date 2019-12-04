@@ -33,3 +33,6 @@
 
 # Folders
 *.vscode/
+
+# Zip files
+*.zip
