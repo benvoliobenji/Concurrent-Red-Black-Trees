@@ -90,6 +90,8 @@ void RBTreeRun::runTree(FileOutput output)
         fileTree.insertNode(*i);
     }
 
+    fileTree.print();
+
     ConcurrentQueue<Command> searchCommands = output.getSearchCommands();
     ConcurrentQueue<Command> modifyCommands = output.getModifyCommands();
 

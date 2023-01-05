@@ -70,6 +70,7 @@ void Parser::parse(const char *fileToParse)
                     else if (threadType.compare("modify") == 0)
                     {
                         std::string numThreads = token.substr(15, token.length() - 15);
+
                         output.setNumWriteThreads(std::stoi(numThreads));
                         threadsRead = true;
                     }

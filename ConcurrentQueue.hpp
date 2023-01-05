@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <queue>
 
+#include <iostream>
 /**
  * An implementation of a thread-safe queue needed for holding either Command objects
  * for the threads to process or the results of search() queries.
