@@ -8,11 +8,14 @@ IndentWidth: 4
 # Brace wrapping: Allman style, except for extern "C" blocks.
 BreakBeforeBraces: Custom
 BraceWrapping:
+  AfterCaseLabel: true
   AfterClass: true
   AfterControlStatement: true
   AfterEnum: true
   AfterFunction: true
   AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
   AfterObjCDeclaration: true
   AfterStruct: true
   AfterUnion: true
