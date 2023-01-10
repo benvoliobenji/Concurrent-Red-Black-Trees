@@ -25,7 +25,7 @@
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe",
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/install",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/${presetName}",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": true,
                 "BUILD_TESTS": true,
                 "ENABLE_CLANG_TIDY": true
