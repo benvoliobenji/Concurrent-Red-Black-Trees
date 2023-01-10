@@ -30,7 +30,7 @@ if(CUSTOM_CPM_SOURCE_CACHE)
 else()
     set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/build/cpm_cache CACHE STRING "CPM Cache Location" FORCE)
 endif()
-inlcude(CPM)
+include(CPM)
 
 include(add_dependencies)
 
