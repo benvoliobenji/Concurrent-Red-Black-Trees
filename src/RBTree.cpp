@@ -25,7 +25,7 @@ void RBTree::printREC(std::shared_ptr<Node> printNode, int level)
     }
 }
 
-bool RBTree::search(int searchKey) 
+bool RBTree::search(int searchKey)
 {
     // Check if a tree even exists first
     if (root == NULL)
@@ -102,7 +102,7 @@ bool RBTree::insertNode(std::shared_ptr<Node> newNode)
         // Using writing condition variable to enforce execution order
         startWritingNode(parentNode);
 
-        while(true)
+        while (true)
         {
             // Find an appropriate child node based on the key
             if (newNode->getKey() > parentNode->getKey())
@@ -118,7 +118,6 @@ bool RBTree::insertNode(std::shared_ptr<Node> newNode)
                 stopWritingNode(parentNode);
                 return true;
             }
-            
 
             // If the child is null, then we've hit a spot to insert
             if (childNode == NULL)
@@ -143,7 +142,6 @@ bool RBTree::insertNode(std::shared_ptr<Node> newNode)
                 // The child is inserted, now check for potential violations
                 fixInsertionViolation(newNode);
                 return true;
-
             }
             else
             {
@@ -368,7 +366,7 @@ void RBTree::fixDeletionViolation(std::shared_ptr<Node> deletionNode)
             else
             {
                 // Case that only the right child of sNode is black
-                if(sRightNode->getNodeColor() == Color::BLACK)
+                if (sRightNode->getNodeColor() == Color::BLACK)
                 {
                     // Update sLeftNode and sNode colors
                     sLeftNode->setNodeColor(Color::BLACK);
@@ -520,11 +518,12 @@ void RBTree::fixInsertionViolation(std::shared_ptr<Node> insertionNode)
     std::shared_ptr<Node> parent = NULL;
     std::shared_ptr<Node> grandParent = NULL;
 
-    parent = violationNode->getParent();  
+    parent = violationNode->getParent();
     startWritingNode(parent);
 
     // These are the conditions for a violation, so don't stop until we've met all the conditions
-    while ((violationNode != root) && (violationNode->getNodeColor() != Color::BLACK) && (parent->getNodeColor() == Color::RED))
+    while ((violationNode != root) && (violationNode->getNodeColor() != Color::BLACK) &&
+           (parent->getNodeColor() == Color::RED))
     {
         if (parent != violationNode)
         {
@@ -602,7 +601,7 @@ void RBTree::fixInsertionViolation(std::shared_ptr<Node> insertionNode)
                     grandParent->setNodeColor(parentColor);
 
                     violationNode = parent;
-                }   
+                }
             }
         }
         // Case 2: parent is the right child of grandParent
@@ -665,9 +664,9 @@ void RBTree::fixInsertionViolation(std::shared_ptr<Node> insertionNode)
                     grandParent->setNodeColor(parentColor);
 
                     violationNode = parent;
-                }    
+                }
             }
-        }      
+        }
     }
 
     // Make sure we stop writing
@@ -769,7 +768,7 @@ void RBTree::rotateRight(std::shared_ptr<Node> rotateNode)
         {
             rotateNodeParent->setRight(rotateNodeLeft);
         }
-        
+
         stopWritingNode(rotateNodeParent);
     }
 
@@ -779,7 +778,6 @@ void RBTree::rotateRight(std::shared_ptr<Node> rotateNode)
     stopWritingNode(rotateNodeLeft);
     stopWritingNode(rotateNode);
 }
-
 
 void RBTree::transplant(std::shared_ptr<Node> removedNode, std::shared_ptr<Node> newNode)
 {

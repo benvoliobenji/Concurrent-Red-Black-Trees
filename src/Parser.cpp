@@ -11,7 +11,7 @@
 #include "trim.h"
 #include "RBTreeRun.hpp"
 
-void Parser::parse(const char *fileToParse)
+void Parser::parse(const char* fileToParse)
 {
     std::fstream file;
     file.open(fileToParse);
@@ -42,7 +42,8 @@ void Parser::parse(const char *fileToParse)
                 // Check to make sure that the first line we read in is NOT the test case header line
                 if (testLine.compare("test") != 0)
                 {
-                    // Since all the nodes are on one line with no return, we can just parse this line and it'll be correct
+                    // Since all the nodes are on one line with no return, we can just parse this line and it'll be
+                    // correct
                     parseNodes(line);
                     nodesRead = true;
                 }
@@ -50,7 +51,6 @@ void Parser::parse(const char *fileToParse)
                 {
                     std::cout << "Test: " << std::to_string(testTracker) << std::endl;
                 }
-                
             }
             else
             {
@@ -86,8 +86,8 @@ void Parser::parse(const char *fileToParse)
                     else
                     {
                         std::cout << "More data in this file: " << line << std::endl;
-                    }  
-                } 
+                    }
+                }
             }
         }
 
@@ -161,7 +161,6 @@ void Parser::parseCommands(std::string commandsToParse)
 
             int node = std::stoi(nodeAffected.substr(1, nodeAffected.size() - 2));
             newCommand.setNode(node);
-
 
             std::string command = lineToken.substr(0, 6);
             std::transform(command.begin(), command.end(), command.begin(), ::tolower);
