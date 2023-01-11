@@ -34,8 +34,9 @@ include(CPM)
 
 include(add_dependencies)
 
-# Add third party/vendor code
-add_subdirectory(third_party)
+set(CONCURRENT_RED_BLACK_TREE_ROOT ${CMAKE_CURRENT_LIST_DIR})
+set(CONCURRENT_RED_BLACK_TREE_INCLUDE ${CMAKE_CURRENT_LIST_DIR}/include)
+set(CONCURRENT_RED_BLACK_TREE_SRC ${CMAKE_CURRENT_LIST_DIR}/src)
 
 # For threading
 find_package(Threads REQUIRED)
@@ -46,9 +47,11 @@ if(CMAKE_THREAD_LIBS_INIT)
   target_link_libraries(CONCURRENT_RED_BLACK_TREE "${CMAKE_THREAD_LIBS_INIT}")
 endif()
 
-set(CONCURRENT_RED_BLACK_TREE_ROOT ${CMAKE_CURRENT_LIST_DIR})
-set(CONCURRENT_RED_BLACK_TREE_INCLUDE ${CMAKE_CURRENT_LIST_DIR}/include)
-set(CONCURRENT_RED_BLACK_TREE_SRC ${CMAKE_CURRENT_LIST_DIR}/src)
+# Add third party/vendor code
+add_subdirectory(third_party)
+
+# Add source code
+add_subdirectory(src)
 
 if(CONCURRENT_RED_BLACK_TREE_BUILD_TESTS)
     enable_testing()
